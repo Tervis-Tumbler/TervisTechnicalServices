@@ -1,4 +1,6 @@
-﻿function New-TervisEmployee {
+﻿#Requires -Modules TervisCUCM, TervisCUPI, CUCMPowerShell
+
+function New-TervisEmployee {
     param(
         $GivenName,
         $SurName,
@@ -8,4 +10,13 @@
         [Switch]$Laptop,
         [Switch]$DualMonitors
     )
+}
+
+function Invoke-TervisVOIPTerminateUser {
+    param (
+        [Parameter(Mandatory)]$SamAccountName
+    )
+
+    Invoke-TervisCUCMTerminateUser -UserName $SamAccountName
+    Invoke-TervisCUCTerminateVM -Alias $SamAccountName    
 }
