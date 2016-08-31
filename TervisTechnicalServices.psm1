@@ -18,5 +18,7 @@ function Invoke-TervisVOIPTerminateUser {
     )
 
     Invoke-TervisCUCMTerminateUser -UserName $SamAccountName
-    Invoke-TervisCUCTerminateVM -Alias $SamAccountName    
+    Invoke-TervisCUCTerminateVM -Alias $SamAccountName 
+    Set-ADUser $SamAccountName -OfficePhone $null
+       
 }
