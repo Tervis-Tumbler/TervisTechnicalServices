@@ -41,7 +41,102 @@ Function New-TervisVOIPUser {
         $ADUser = Get-ADUser $UserID
         $DisplayName = $ADUser.name
 
-        Set-CUCMLine -Pattern $Pattern -RoutePartitionName UCCX_PT -Description $DisplayName -AlertingName $DisplayName -AsciiAlertingName $DisplayName 
+        $Parameters = @{
+            Pattern = $Pattern
+            routePartition = "UCCX_PT"
+            CSS = "UCCX_CSS"
+            Description = $DisplayName
+            AlertingName = $DisplayName
+            AsciiAlertingName = $DisplayName
+            userHoldMohAudioSourceId = "0"
+            networkHoldMohAudioSourceId = "0"
+            voiceMailProfileName = "Voicemail"
+            CallForwardAllForwardToVoiceMail = "False"
+            CallForwardAllcallingSearchSpaceName = "UCCX_CSS"
+            CallForwardAllsecondarycallingSearchSpaceName = "UCCX_CSS"
+            CallForwardBusyForwardToVoiceMail= "True"
+            CallForwardBusycallingSearchSpaceName = "UCCX_CSS"
+            CallForwardBusyIntForwardToVoiceMail = "True"
+            CallForwardBusyIntcallingSearchSpaceName = "UCCX_CSS"
+            CallForwardNoAnswerForwardToVoiceMail = "True"
+            CallForwardNoAnswercallingSearchSpaceName = "UCCX_CSS"
+            CallForwardNoAnswerIntForwardToVoiceMail = "True"
+            CallForwardNoAnswerIntcallingSearchSpaceName = "UCCX_CSS"
+            CallForwardNoCoverageForwardToVoiceMail = "True"
+            CallForwardNoCoveragecallingSearchSpaceName = "UCCX_CSS"
+            CallForwardNoCoverageIntForwardToVoiceMail = "True"
+            CallForwardNoCoverageIntcallingSearchSpaceName = "UCCX_CSS"
+            CallForwardOnFailureForwardToVoiceMail = "True"
+            CallForwardOnFailurecallingSearchSpaceName = "UCCX_CSS"
+            CallForwardNotRegisteredForwardToVoiceMail = "True"
+            CallForwardNotRegisteredcallingSearchSpaceName = "UCCX_CSS"
+            CallForwardNotRegisteredIntForwardToVoiceMail = "True"
+            CallForwardNotRegisteredIntcallingSearchSpaceName = "UCCX_CSS"
+            index = "1"
+            Display = $DisplayName
+            
+        }
 
+        $Dirnuuid = Set-CUCMAgentLine @Parameters
+
+        $Parameters = @{
+        UserID = $UserID
+        DeviceName = "CSF" + $UserID
+        Description = $DisplayName
+        Product = "Cisco Unified Client Services Framework"
+        Class = "Phone"
+        Protocol = "SIP"
+        ProtocolSide = "User"
+        CallingSearchSpaceName = "Gateway_outbound_CSS"
+        DevicePoolName = "TPA_DP"
+        SecurityProfileName = "Cisco Unified Client Services Framework - Standard SIP Non-Secure"
+        SipProfileName = "Standard SIP Profile"
+        MediaResurceListName = "TPA_MRL"
+        Locationname = "Hub_None"
+        Dirnuuid = $Dirnuuid
+        Label = $DisplayName
+        AsciiLabel = $DisplayName
+        Display = $DisplayName
+        DisplayAscii = $DisplayName
+        E164Mask = "941441XXXX"
+        PhoneTemplateName = "Standard Client Services Framework"
+        
+        }
+        
+        Add-CUCMPhone @Parameters
+        
+        $Parameters = @{
+
+        UserID = $UserID
+        Pattern = $Pattern
+        imAndPresenceEnable = "True"
+        serviceProfile = "UCServiceProfile_Migration_1"
+        routePartitionName = "UCCX_PT"
+        userGroupName = "CCM END USER SETTINGS"
+        userRolesName = "CCM END USER SETTINGS"
+
+        }
+       
+       Set-CUCMUser @Parameters
+
+       $Parameters = @{
+
+       Pattern = $Pattern
+       UserID = $UserID
+       RoutePartition = "UCCX_PT"
+       CSS = "UCCX_CSS"
+
+       }
+
+       Set-CUCMIPCCExtension @Parameters
+
+       
+
+        $CUCMAppuser = Get-CUCMAppuser -UserID AXL_uccx_RmCm
+        $DeviceNames = @($CUCMAppuser.associatedDevices.device)
+        $DeviceNames += "CSF" + $UserID
+        Set-CUCMAppuser -UserID AXL_uccx_RmCm -DeviceNames $DeviceNames
+    
     }
+
 }
