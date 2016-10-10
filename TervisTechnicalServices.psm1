@@ -32,7 +32,7 @@ Function New-TervisVOIPUser {
     if ($UserType -eq "CallCenterAgent") {
         $Pattern = Find-CUCMLine -Pattern 7% -Description "" | select -First 1
         Set-ADUser $UserID -OfficePhone $Pattern
-        Sync-CUCMtoLDAP
+        Sync-CUCMtoLDAP -LDAPDirectory TERV_AD
 
         do {
             sleep -Seconds 3
