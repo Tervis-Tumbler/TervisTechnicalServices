@@ -25,8 +25,8 @@ function Invoke-TervisVOIPTerminateUser {
 
 Function New-TervisVOIPUser {
     param (
-        [ValidateSet("CallCenterAgent")]$UserType,
-        $UserID
+        [Parameter(Mandatory)][ValidateSet("CallCenterAgent")] [String]$UserType,
+        [Parameter(Mandatory)][String]$UserID
     )
 
     if ($UserType -eq "CallCenterAgent") {
@@ -40,7 +40,8 @@ Function New-TervisVOIPUser {
 
         $ADUser = Get-ADUser $UserID
         $DisplayName = $ADUser.name
-
+        $DeviceName = "CSF"
+        
         $Parameters = @{
             Pattern = $Pattern
             routePartition = "UCCX_PT"
@@ -80,51 +81,50 @@ Function New-TervisVOIPUser {
         $Dirnuuid = Set-CUCMAgentLine @Parameters
 
         $Parameters = @{
-        UserID = $UserID
-        DeviceName = "CSF" + $UserID
-        Description = $DisplayName
-        Product = "Cisco Unified Client Services Framework"
-        Class = "Phone"
-        Protocol = "SIP"
-        ProtocolSide = "User"
-        CallingSearchSpaceName = "Gateway_outbound_CSS"
-        DevicePoolName = "TPA_DP"
-        SecurityProfileName = "Cisco Unified Client Services Framework - Standard SIP Non-Secure"
-        SipProfileName = "Standard SIP Profile"
-        MediaResurceListName = "TPA_MRL"
-        Locationname = "Hub_None"
-        Dirnuuid = $Dirnuuid
-        Label = $DisplayName
-        AsciiLabel = $DisplayName
-        Display = $DisplayName
-        DisplayAscii = $DisplayName
-        E164Mask = "941441XXXX"
-        PhoneTemplateName = "Standard Client Services Framework"
+            UserID = $UserID
+            DeviceName = "$DeviceName" + $UserID
+            Description = $DisplayName
+            Product = "Cisco Unified Client Services Framework"
+            Class = "Phone"
+            Protocol = "SIP"
+            ProtocolSide = "User"
+            CallingSearchSpaceName = "Gateway_outbound_CSS"
+            DevicePoolName = "TPA_DP"
+            SecurityProfileName = "Cisco Unified Client Services Framework - Standard SIP Non-Secure"
+            SipProfileName = "Standard SIP Profile"
+            MediaResourceListName = "TPA_MRL"
+            Locationname = "Hub_None"
+            Dirnuuid = $Dirnuuid
+            Label = $DisplayName
+            AsciiLabel = $DisplayName
+            Display = $DisplayName
+            DisplayAscii = $DisplayName
+            E164Mask = "941441XXXX"
+            PhoneTemplateName = "Standard Client Services Framework"
         
         }
         
         Add-CUCMPhone @Parameters
         
         $Parameters = @{
-
-        UserID = $UserID
-        Pattern = $Pattern
-        imAndPresenceEnable = "True"
-        serviceProfile = "UCServiceProfile_Migration_1"
-        routePartitionName = "UCCX_PT"
-        userGroupName = "CCM END USER SETTINGS"
-        userRolesName = "CCM END USER SETTINGS"
+            UserID = $UserID
+            Pattern = $Pattern
+            imAndPresenceEnable = "True"
+            serviceProfile = "UCServiceProfile_Migration_1"
+            DeviceName = "$DeviceName" + $UserID
+            routePartitionName = "UCCX_PT"
+            userGroupName = "CCM END USER SETTINGS"
+            userRolesName = "CCM END USER SETTINGS"
 
         }
        
        Set-CUCMUser @Parameters
 
        $Parameters = @{
-
-       Pattern = $Pattern
-       UserID = $UserID
-       RoutePartition = "UCCX_PT"
-       CSS = "UCCX_CSS"
+           Pattern = $Pattern
+           UserID = $UserID
+           RoutePartition = "UCCX_PT"
+           CSS = "UCCX_CSS"
 
        }
 
@@ -132,10 +132,10 @@ Function New-TervisVOIPUser {
 
        
 
-        $CUCMAppuser = Get-CUCMAppuser -UserID AXL_uccx_RmCm
-        $DeviceNames = @($CUCMAppuser.associatedDevices.device)
-        $DeviceNames += "CSF" + $UserID
-        Set-CUCMAppuser -UserID AXL_uccx_RmCm -DeviceNames $DeviceNames
+       $CUCMAppuser = Get-CUCMAppuser -UserID AXL_uccx_RmCm
+       $DeviceNames = @($CUCMAppuser.associatedDevices.device)
+       $DeviceNames += "$DeviceName" + $UserID
+       Set-CUCMAppuser -UserID AXL_uccx_RmCm -DeviceNames $DeviceNames
     
     }
 
