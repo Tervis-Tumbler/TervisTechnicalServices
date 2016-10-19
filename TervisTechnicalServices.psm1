@@ -140,3 +140,50 @@ Function New-TervisVOIPUser {
     }
 
 }
+
+function Remove-TervisUser {
+    param(
+        [Parameter(Mandatory)]$Identity,
+        [Parameter(Mandatory)]$IdentityOfUserToReceiveAccessToUsersHomeDirectoryandEmail,
+        [Parameter(Mandatory)][Switch]$ManagerReceivesFiles,
+        [Parameter(Mandatory)][Switch]$DeleteFilesWithoutMovingThem
+    )
+    $SupervisorComputerObject = Find-TervisADUsersComptuer -SAMAccountName $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
+    $SupervisorComputerObjectName = $SupervisorComputerObject.Name
+    $PasswordstateAPIKeyFilePath = "$env:USERPROFILE\PasswordState.APIKey"
+    
+    Write-Verbose "Checking for Passwordstate API Key secure file..."
+    if(-not (Test-Path $PasswordstateAPIKeyFilePath)){
+        Write-Output "Please enter Passwordstate API Key below..."
+        Install-PasswordStatePowerShell
+    }
+    else {
+    Write-Verbose "Passwordstate API Key secure file already exists..."
+    }
+
+    Write-Verbose "Getting Exchange Online credentials..."
+    #Install-TervisMSOnline
+
+    Write-Verbose "Starting account removal and mailbox modifications..."
+    #Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToRecieveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail -AzureADConnectComputerName dirsync
+
+    Write-Verbose "Checking if Supervisor's computer is a Mac..."
+    if($SupervisorComputerObjectName -like "*-mac") {
+        Write-Verbose "Sending instructions to supervisor for Outlook for Mac..."
+        #Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
+    }
+    else {
+        Write-Verbose "Supervisor's computer is not a Mac, moving along..."
+    }
+    
+    Write-Verbose "Making specified changes to user's home directory and sending email to supervisor..."
+    if($ManagerReceivesFiles) {
+        Remove-TervisADUserHomeDirectory -Identity $Identity -ManagerReceivesFiles:$ManagerReceivesFiles
+    }
+    elseif($DeleteFilesWithoutMovingThem) {
+        Remove-TervisADUserHomeDirectory -Identity $Identity -DeleteFilesWithoutMovingThem:$DeleteFilesWithoutMovingThem
+    }
+    else {
+        Remove-TervisADUserHomeDirectory -Identity $Identity -IdentityOfUserToReceiveHomeDirectoryFiles $IdentityOfUserToReceiveAccessToUsersHomeDirectoryandEmail
+    }
+}
