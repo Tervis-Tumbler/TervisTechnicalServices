@@ -142,15 +142,19 @@ Function New-TervisVOIPUser {
 }
 
 function Remove-TervisUser {
+    [CmdletBinding()]
+    
     param(
         [Parameter(Mandatory)]$Identity,
-        [Parameter(Mandatory)]$IdentityOfUserToReceiveAccessToUsersHomeDirectoryandEmail,
-        [Parameter(Mandatory)][Switch]$ManagerReceivesFiles,
-        [Parameter(Mandatory)][Switch]$DeleteFilesWithoutMovingThem
+        $IdentityOfUserToReceiveAccessToUsersHomeDirectoryandEmail = $ADUser.Manager,
+        [Switch]$ManagerReceivesFiles,
+        [Switch]$DeleteFilesWithoutMovingThem
     )
+    $ADUser = Get-ADUser -Identity $Identity -Properties Manager
     $SupervisorComputerObject = Find-TervisADUsersComptuer -SAMAccountName $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
     $SupervisorComputerObjectName = $SupervisorComputerObject.Name
     $PasswordstateAPIKeyFilePath = "$env:USERPROFILE\PasswordState.APIKey"
+    
     
     Write-Verbose "Checking for Passwordstate API Key secure file..."
     if(-not (Test-Path $PasswordstateAPIKeyFilePath)){
@@ -162,20 +166,11 @@ function Remove-TervisUser {
     }
 
     Write-Verbose "Getting Exchange Online credentials..."
-    #Install-TervisMSOnline
+    Install-TervisMSOnline
 
     Write-Verbose "Starting account removal and mailbox modifications..."
-    #Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToRecieveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail -AzureADConnectComputerName dirsync
+    Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToRecieveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail -AzureADConnectComputerName dirsync
 
-    Write-Verbose "Checking if Supervisor's computer is a Mac..."
-    if($SupervisorComputerObjectName -like "*-mac") {
-        Write-Verbose "Sending instructions to supervisor for Outlook for Mac..."
-        #Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
-    }
-    else {
-        Write-Verbose "Supervisor's computer is not a Mac, moving along..."
-    }
-    
     Write-Verbose "Making specified changes to user's home directory and sending email to supervisor..."
     if($ManagerReceivesFiles) {
         Remove-TervisADUserHomeDirectory -Identity $Identity -ManagerReceivesFiles:$ManagerReceivesFiles
@@ -185,5 +180,14 @@ function Remove-TervisUser {
     }
     else {
         Remove-TervisADUserHomeDirectory -Identity $Identity -IdentityOfUserToReceiveHomeDirectoryFiles $IdentityOfUserToReceiveAccessToUsersHomeDirectoryandEmail
+    }
+
+    Write-Verbose "Checking if Supervisor's computer is a Mac..."
+    if($SupervisorComputerObjectName -like "*-mac") {
+        Write-Verbose "Sending instructions to supervisor for Outlook for Mac..."
+        Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
+    }
+    else {
+        Write-Verbose "Supervisor's computer is not a Mac, moving along..."
     }
 }
