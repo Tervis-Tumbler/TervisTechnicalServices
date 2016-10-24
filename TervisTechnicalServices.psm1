@@ -1,4 +1,14 @@
-﻿#Requires -Modules TervisCUCM, TervisCUPI, CUCMPowerShell
+﻿#Requires -Modules TervisCUCM, TervisCUPI, CUCMPowerShell, TervisActiveDirectory, TervisMSOnline
+
+function Install-TervisTechnicalServices {
+    if(-not (Get-PasswordStateAPIKey -ErrorAction SilentlyContinue)){
+        Install-PasswordStatePowerShell
+    }
+    Install-TervisMSOnline
+    Install-TervisCUCM
+    Install-TervisCUPI
+    Invoke-EnvironmentVariablesRefresh
+}
 
 function New-TervisEmployee {
     param(
@@ -20,7 +30,6 @@ function Invoke-TervisVOIPTerminateUser {
     Invoke-TervisCUCMTerminateUser -UserName $SamAccountName
     Invoke-TervisCUCTerminateVM -Alias $SamAccountName 
     Set-ADUser $SamAccountName -OfficePhone $null
-       
 }
 
 Function New-TervisVOIPUser {
@@ -143,51 +152,48 @@ Function New-TervisVOIPUser {
 
 function Remove-TervisUser {
     [CmdletBinding()]
-    
     param(
         [Parameter(Mandatory)]$Identity,
-        $IdentityOfUserToReceiveAccessToUsersHomeDirectoryandEmail = $ADUser.Manager,
-        [Switch]$ManagerReceivesFiles,
-        [Switch]$DeleteFilesWithoutMovingThem
+        $IdentityOfUserToRecieveAccessToRemovedUsersMailbox,
+        [Parameter(Mandatory, ParameterSetName="ManagerReceivesFiles")][Switch]$ManagerReceivesFiles,
+        [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesFiles")]$IdentityOfUserToReceiveHomeDirectoryFiles,        
+        [Parameter(Mandatory, ParameterSetName="DeleteUsersFiles")][Switch]$DeleteFilesWithoutMovingThem
     )
-    $ADUser = Get-ADUser -Identity $Identity -Properties Manager
-    $SupervisorComputerObject = Find-TervisADUsersComptuer -SAMAccountName $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
-    $SupervisorComputerObjectName = $SupervisorComputerObject.Name
-    $PasswordstateAPIKeyFilePath = "$env:USERPROFILE\PasswordState.APIKey"
     
-    
-    Write-Verbose "Checking for Passwordstate API Key secure file..."
-    if(-not (Test-Path $PasswordstateAPIKeyFilePath)){
-        Write-Output "Please enter Passwordstate API Key below..."
-        Install-PasswordStatePowerShell
-    }
-    else {
-    Write-Verbose "Passwordstate API Key secure file already exists..."
-    }
+    Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
 
-    Write-Verbose "Getting Exchange Online credentials..."
-    Install-TervisMSOnline
 
-    Write-Verbose "Starting account removal and mailbox modifications..."
-    Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToRecieveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail -AzureADConnectComputerName dirsync
+    $RemoveTervisADUserHomeDirectoryParameters = $PSBoundParameters | 
+    where Key -in "Identity","ManagerReceivesFiles","DeleteFilesWithoutMovingThem","IdentityOfUserToReceiveHomeDirectoryFiles"
 
-    Write-Verbose "Making specified changes to user's home directory and sending email to supervisor..."
-    if($ManagerReceivesFiles) {
-        Remove-TervisADUserHomeDirectory -Identity $Identity -ManagerReceivesFiles:$ManagerReceivesFiles
-    }
-    elseif($DeleteFilesWithoutMovingThem) {
-        Remove-TervisADUserHomeDirectory -Identity $Identity -DeleteFilesWithoutMovingThem:$DeleteFilesWithoutMovingThem
-    }
-    else {
-        Remove-TervisADUserHomeDirectory -Identity $Identity -IdentityOfUserToReceiveHomeDirectoryFiles $IdentityOfUserToReceiveAccessToUsersHomeDirectoryandEmail
-    }
+    Remove-TervisADUserHomeDirectory @RemoveTervisADUserHomeDirectoryParameters
 
     Write-Verbose "Checking if Supervisor's computer is a Mac..."
+    $ADUser = Get-ADUser -Identity $Identity -Properties Manager
+    $SupervisorComputerObject = Find-TervisADUsersComputer -SAMAccountName $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
+    $SupervisorComputerObjectName = $SupervisorComputerObject.Name
+
     if($SupervisorComputerObjectName -like "*-mac") {
         Write-Verbose "Sending instructions to supervisor for Outlook for Mac..."
-        Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
+        #Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
     }
     else {
         Write-Verbose "Supervisor's computer is not a Mac, moving along..."
+    }
+    
+    Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToRecieveAccessToRemovedUsersMailbox $IdentityOfUserToRecieveAccessToRemovedUsersMailbox -AzureADConnectComputerName dirsync
+}
+
+function Invoke-EnvironmentVariablesRefresh {   
+    $locations = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+                 'HKCU:\Environment'
+
+    $locations | ForEach-Object {   
+        $k = Get-Item $_
+        $k.GetValueNames() | ForEach-Object {
+            $name  = $_
+            $value = $k.GetValue($_)
+            Set-Item -Path Env:\$name -Value $value
+        }
     }
 }
