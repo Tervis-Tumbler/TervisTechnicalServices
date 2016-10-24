@@ -175,7 +175,7 @@ function Remove-TervisUser {
 
     if($SupervisorComputerObjectName -like "*-mac") {
         Write-Verbose "Sending instructions to supervisor for Outlook for Mac..."
-        #Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
+        Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
     }
     else {
         Write-Verbose "Supervisor's computer is not a Mac, moving along..."
