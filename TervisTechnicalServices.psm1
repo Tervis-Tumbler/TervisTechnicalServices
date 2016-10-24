@@ -1,4 +1,14 @@
-﻿#Requires -Modules TervisCUCM, TervisCUPI, CUCMPowerShell
+﻿#Requires -Modules TervisCUCM, TervisCUPI, CUCMPowerShell, TervisActiveDirectory, TervisMSOnline
+
+function Install-TervisTechnicalServices {
+    if(-not (Get-PasswordStateAPIKey -ErrorAction SilentlyContinue)){
+        Install-PasswordStatePowerShell
+    }
+    Install-TervisMSOnline
+    Install-TervisCUCM
+    Install-TervisCUPI
+    Invoke-EnvironmentVariablesRefresh
+}
 
 function New-TervisEmployee {
     param(
@@ -20,7 +30,6 @@ function Invoke-TervisVOIPTerminateUser {
     Invoke-TervisCUCMTerminateUser -UserName $SamAccountName
     Invoke-TervisCUCTerminateVM -Alias $SamAccountName 
     Set-ADUser $SamAccountName -OfficePhone $null
-       
 }
 
 Function New-TervisVOIPUser {
@@ -139,4 +148,52 @@ Function New-TervisVOIPUser {
     
     }
 
+}
+
+function Remove-TervisUser {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]$Identity,
+        $IdentityOfUserToRecieveAccessToRemovedUsersMailbox,
+        [Parameter(Mandatory, ParameterSetName="ManagerReceivesFiles")][Switch]$ManagerReceivesFiles,
+        [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesFiles")]$IdentityOfUserToReceiveHomeDirectoryFiles,        
+        [Parameter(Mandatory, ParameterSetName="DeleteUsersFiles")][Switch]$DeleteFilesWithoutMovingThem
+    )
+    
+    Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
+
+
+    $RemoveTervisADUserHomeDirectoryParameters = $PSBoundParameters | 
+    where Key -in "Identity","ManagerReceivesFiles","DeleteFilesWithoutMovingThem","IdentityOfUserToReceiveHomeDirectoryFiles"
+
+    Remove-TervisADUserHomeDirectory @RemoveTervisADUserHomeDirectoryParameters
+
+    Write-Verbose "Checking if Supervisor's computer is a Mac..."
+    $ADUser = Get-ADUser -Identity $Identity -Properties Manager
+    $SupervisorComputerObject = Find-TervisADUsersComputer -SAMAccountName $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
+    $SupervisorComputerObjectName = $SupervisorComputerObject.Name
+
+    if($SupervisorComputerObjectName -like "*-mac") {
+        Write-Verbose "Sending instructions to supervisor for Outlook for Mac..."
+        #Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
+    }
+    else {
+        Write-Verbose "Supervisor's computer is not a Mac, moving along..."
+    }
+    
+    Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToRecieveAccessToRemovedUsersMailbox $IdentityOfUserToRecieveAccessToRemovedUsersMailbox -AzureADConnectComputerName dirsync
+}
+
+function Invoke-EnvironmentVariablesRefresh {   
+    $locations = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+                 'HKCU:\Environment'
+
+    $locations | ForEach-Object {   
+        $k = Get-Item $_
+        $k.GetValueNames() | ForEach-Object {
+            $name  = $_
+            $value = $k.GetValue($_)
+            Set-Item -Path Env:\$name -Value $value
+        }
+    }
 }
