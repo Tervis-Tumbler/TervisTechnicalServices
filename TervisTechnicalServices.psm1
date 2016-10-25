@@ -161,12 +161,7 @@ function Remove-TervisUser {
     )
     
     Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
-
-
-    $RemoveTervisADUserHomeDirectoryParameters = $PSBoundParameters | 
-    where Key -in "Identity","ManagerReceivesFiles","DeleteFilesWithoutMovingThem","IdentityOfUserToReceiveHomeDirectoryFiles"
-
-    Remove-TervisADUserHomeDirectory @RemoveTervisADUserHomeDirectoryParameters
+    Remove-TervisADUserHomeDirectory @PSBoundParameters
 
     Write-Verbose "Checking if Supervisor's computer is a Mac..."
     $ADUser = Get-ADUser -Identity $Identity -Properties Manager
@@ -176,8 +171,7 @@ function Remove-TervisUser {
     if($SupervisorComputerObjectName -like "*-mac") {
         Write-Verbose "Sending instructions to supervisor for Outlook for Mac..."
         Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
-    }
-    else {
+    } else {
         Write-Verbose "Supervisor's computer is not a Mac, moving along..."
     }
     
