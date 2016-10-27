@@ -167,7 +167,7 @@ function Remove-TervisUser {
         $IdentityOfUserToReceiveData = (Get-ADUser ($ADUser.Manager)).SamAccountName
     }        
 
-    #Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
+    Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
 
     $UserToReceiveComputerIsMac = Find-TervisADUsersComputer -SAMAccountName $IdentityOfUserToReceiveData |
         Test-TervisADComputerIsMac
