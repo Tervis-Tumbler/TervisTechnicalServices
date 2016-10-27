@@ -154,26 +154,31 @@ function Remove-TervisUser {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]$Identity,
-        $IdentityOfUserToRecieveAccessToRemovedUsersMailbox,
-        [Parameter(Mandatory, ParameterSetName="ManagerReceivesFiles")][Switch]$ManagerReceivesFiles,
-        [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesFiles")]$IdentityOfUserToReceiveHomeDirectoryFiles,        
-        [Parameter(Mandatory, ParameterSetName="DeleteUsersFiles")][Switch]$DeleteFilesWithoutMovingThem
+        [Parameter(Mandatory, ParameterSetName="ManagerReceivesData")][Switch]$ManagerReceivesData,
+        [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesData")]$IdentityOfUserToReceiveData,        
+        [Switch]$DeleteFilesWithoutMovingThem
     )
-    
-    Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
+    $ADUser = Get-ADUser -Identity $Identity -Properties Manager, HomeDirectory
 
-    Write-Verbose "Checking if Supervisor's computer is a Mac..."
-    $ADUser = Get-ADUser -Identity $Identity -Properties Manager
-    $SupervisorComputerObject = Find-TervisADUsersComputer -SAMAccountName $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
-    $SupervisorComputerObjectName = $SupervisorComputerObject.Name
+    if ($ManagerReceivesData) {
+        if( -not $ADUser.Manager) { 
+            Throw "ManagerReceivesData was specified but the user doesn't have a manager in Active Directory" 
+        }
+        $IdentityOfUserToReceiveData = (Get-ADUser ($ADUser.Manager)).SamAccountName
+    }        
 
-    if($SupervisorComputerObjectName -like "*-mac") {
-        Write-Verbose "Sending instructions to supervisor for Outlook for Mac..."
-        Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveAccessToUsersHomeDirectoryAndEmail
-        Read-Host "Please move the terminated user's files to the recipient's Mac manually using Teamviewer. Press `"Enter`" when this has been completed."
+    #Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
+
+    $UserToReceiveComputerIsMac = Find-TervisADUsersComputer -SAMAccountName $IdentityOfUserToReceiveData |
+        Test-TervisADComputerIsMac
+
+    if($UserToReceiveComputerIsMac -and -Not $DeleteFilesWithoutMovingThem) {        
+        Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveData
+        Read-Host "Please move the terminated user's files to the recipient's Mac manually using Teamviewer. Once this has been completed, please run `"Remove-TervisADUserHomeDirectory -Identity $Identity -DeleteFilesWithoutMovingThem`". Press `"Enter`" to acknowledge this message"
+    } elseif ($DeleteFilesWithoutMovingThem) {
+            Remove-TervisADUserHomeDirectory -Identity $Identity -DeleteFilesWithoutMovingThem
     } else {
-        Write-Verbose "Supervisor's computer is not a Mac, moving along..."
-        Remove-TervisADUserHomeDirectory @PSBoundParameters
+        Remove-TervisADUserHomeDirectory -Identity $Identity -IdentityOfUserToReceiveHomeDirectoryFiles $IdentityOfUserToReceiveData
     }
     
     Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToRecieveAccessToRemovedUsersMailbox $IdentityOfUserToRecieveAccessToRemovedUsersMailbox -AzureADConnectComputerName dirsync
