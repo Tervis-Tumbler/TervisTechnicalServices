@@ -205,19 +205,18 @@ function Invoke-EnvironmentVariablesRefresh {
 }
 
 function Send-ITTerminationEmails {
+    [cmdletbinding()]
     param (
-        [Parameter(Mandatory)]$SamAccountName,
         [Parameter(Mandatory)]$Identity
     )
     
-    #$Emails = (
-    #    ($EmailAddressToCDW = "andydai@cdw.com"),
-    #    ($EmailAddressToSHI = "anthony_geremia@shi.com; todd_rigden@shi.com"),
-    #    ($EmailAddressToDell = "russel_dunn@dell.com"),
-    #    ($EmailAddressToATT = "joe.rivkin@att.net"),
-    #    ($EmailAddressToPeak10 = "support@peak10.com")
-    #)
-    $Emails = "alozano@tervis.com"
+    $Emails = (
+        ($EmailAddressToCDW = "andydai@cdw.com"),
+        ($EmailAddressToSHI = "anthony_geremia@shi.com; todd_rigden@shi.com"),
+        ($EmailAddressToDell = "russel_dunn@dell.com"),
+        ($EmailAddressToATT = "joe.rivkin@att.net"),
+        ($EmailAddressToPeak10 = "support@peak10.com")
+    )
 
     $NameOfTerminatedEmployee = (Get-ADUser -Identity $Identity).Name
     $To = 
