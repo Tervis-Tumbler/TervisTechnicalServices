@@ -156,7 +156,8 @@ function Remove-TervisUser {
         [Parameter(Mandatory)]$Identity,
         [Parameter(Mandatory, ParameterSetName="ManagerReceivesData")][Switch]$ManagerReceivesData,
         [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesData")]$IdentityOfUserToReceiveData,        
-        [Switch]$DeleteFilesWithoutMovingThem
+        [Switch]$DeleteFilesWithoutMovingThem,
+        [Switch]$UserWasITEmployee
     )
     $ADUser = Get-ADUser -Identity $Identity -Properties Manager, HomeDirectory
 
@@ -182,6 +183,11 @@ function Remove-TervisUser {
     }
     
     Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToReceiveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveData -AzureADConnectComputerName dirsync
+
+    if ($UserWasITEmployee) {
+        Send-ITTerminationEmails -Identity $Identity
+    }
+
 }
 
 function Invoke-EnvironmentVariablesRefresh {   
@@ -196,4 +202,38 @@ function Invoke-EnvironmentVariablesRefresh {
             Set-Item -Path Env:\$name -Value $value
         }
     }
+}
+
+function Send-ITTerminationEmails {
+    param (
+        [Parameter(Mandatory)]$SamAccountName,
+        [Parameter(Mandatory)]$Identity
+    )
+    
+    #$Emails = (
+    #    ($EmailAddressToCDW = "andydai@cdw.com"),
+    #    ($EmailAddressToSHI = "anthony_geremia@shi.com; todd_rigden@shi.com"),
+    #    ($EmailAddressToDell = "russel_dunn@dell.com"),
+    #    ($EmailAddressToATT = "joe.rivkin@att.net"),
+    #    ($EmailAddressToPeak10 = "support@peak10.com")
+    #)
+    $Emails = "alozano@tervis.com"
+
+    $NameOfTerminatedEmployee = (Get-ADUser -Identity $Identity).Name
+    $To = 
+    $Bcc = $Emails
+    $From = "helpdeskteam@tervis.com"
+    $Subject = "$NameOfTerminatedEmployee is no longer working for Tervis."
+    $Body = @"
+Hello,
+
+$NameOfTerminatedEmployee is no longer working for Tervis.  Please remove them from your system.
+
+Thank you,
+
+Tervis IT
+
+"@
+
+    Send-TervisMailMessage -To $To -Bcc $Bcc -From $From -Subject $Subject -Body $Body
 }
