@@ -155,11 +155,17 @@ function Remove-TervisUser {
     param(
         [Parameter(Mandatory)]$Identity,
         [Parameter(Mandatory, ParameterSetName="ManagerReceivesData")][Switch]$ManagerReceivesData,
-        [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesData")]$IdentityOfUserToReceiveData,        
+        [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesData")]$IdentityOfUserToReceiveData,
+        [Parameter(Mandatory, ParameterSetName="NoUserReceivesData")][Switch]$NoUserReceivesData,        
         [Switch]$DeleteFilesWithoutMovingThem,
         [Switch]$UserWasITEmployee
     )
     $ADUser = Get-ADUser -Identity $Identity -Properties Manager, HomeDirectory
+
+    if ($NoUserReceivesData) {
+        $DeleteFilesWithoutMovingThem = $true
+        $IdentityOfUserToReceiveData = $null
+    }
 
     if ($ManagerReceivesData) {
         if( -not $ADUser.Manager) { 
@@ -169,9 +175,11 @@ function Remove-TervisUser {
     }        
 
     Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
-
-    $UserToReceiveComputerIsMac = Find-TervisADUsersComputer -SAMAccountName $IdentityOfUserToReceiveData |
-        Test-TervisADComputerIsMac
+    
+    if (-not $NoUserReceivesData) {
+        $UserToReceiveComputerIsMac = Find-TervisADUsersComputer -SAMAccountName $IdentityOfUserToReceiveData |
+            Test-TervisADComputerIsMac
+    }
 
     if($UserToReceiveComputerIsMac -and -Not $DeleteFilesWithoutMovingThem) {        
         Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveData
