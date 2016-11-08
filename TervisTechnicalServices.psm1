@@ -157,7 +157,7 @@ function Remove-TervisUser {
         [Parameter(Mandatory, ParameterSetName="ManagerReceivesData")][Switch]$ManagerReceivesData,
         [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesData")]$IdentityOfUserToReceiveData,
         [Parameter(Mandatory, ParameterSetName="NoUserReceivesData")][Switch]$NoUserReceivesData,        
-        [Switch]$DeleteFilesWithoutMovingThem,
+        [Parameter(ParameterSetName="ManagerReceivesData")][Parameter(ParameterSetName="AnotherUserReceivesData")][Switch]$DeleteFilesWithoutMovingThem,
         [Switch]$UserWasITEmployee
     )
     $ADUser = Get-ADUser -Identity $Identity -Properties Manager, HomeDirectory
