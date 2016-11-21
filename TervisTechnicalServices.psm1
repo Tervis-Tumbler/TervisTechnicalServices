@@ -22,6 +22,30 @@ function New-TervisEmployee {
     )
 }
 
+function New-TervisMESUser {
+    param(
+        [Parameter(ValueFromPipeline,Mandatory)]$FirstName,
+        [Parameter(ValueFromPipeline,Mandatory)]$LastName,
+        [Parameter(ValueFromPipeline,Mandatory)]$Username,
+        [Parameter(ValueFromPipeline)]$MiddleInitial
+    )
+    $OUPath = "OU=Users,OU=Production Floor,OU=Operations,OU=Departments,DC=tervis,DC=prv"
+    $UPN = "$Username@tervis.prv"
+    $Department = "Production"
+
+    if($MiddleInitial) {
+    
+        New-ADUser -Name "$FirstName $MiddleInitial $LastName" -GivenName $FirstName -Surname $LastName -Initials $MiddleInitial -DisplayName "$FirstName $MiddleInitial $LastName" -UserPrincipalName $UPN -Path $OUPath -SamAccountName $Username -Department $Department
+        
+        }
+
+        else {
+
+        New-ADUser -Name "$FirstName $LastName" -GivenName $FirstName -Surname $LastName -DisplayName "$FirstName $LastName" -UserPrincipalName $UPN -Path $OUPath -SamAccountName $Username -Department $Department
+
+        }
+}
+
 function Invoke-TervisVOIPTerminateUser {
     param (
         [Parameter(Mandatory)]$SamAccountName
