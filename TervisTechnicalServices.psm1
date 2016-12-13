@@ -53,9 +53,6 @@ function Invoke-TervisVOIPTerminateUser {
     Invoke-TervisCUCMTerminateUser -UserName $SamAccountName
     Invoke-TervisCUCTerminateVM -Alias $SamAccountName
     
-    $ADUser = Get-ADUser $SamAccountName -Properties OfficePhone
-    if ($ADUser.OfficePhone) {
-        Set-ADUser $SamAccountName -Clear OfficePhone
     }
 }
 
