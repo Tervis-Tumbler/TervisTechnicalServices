@@ -198,19 +198,11 @@ function Remove-TervisUser {
     }        
 
     Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
-    
-    if (-not $NoUserReceivesData) {
-        $UserToReceiveComputerIsMac = Find-TervisADUsersComputer -SAMAccountName $IdentityOfUserToReceiveData |
-            Test-TervisADComputerIsMac
-    }
 
-    if($UserToReceiveComputerIsMac -and -Not $DeleteFilesWithoutMovingThem) {        
-        Send-SupervisorOfTerminatedUserSharedEmailInstructions -UserNameOfTerminatedUser $Identity -UserNameOfSupervisor $IdentityOfUserToReceiveData
-        Read-Host "Please move the terminated user's files to the recipient's Mac manually using Teamviewer. Once this has been completed, please run `"Remove-TervisADUserHomeDirectory -Identity $Identity -DeleteFilesWithoutMovingThem`". Press `"Enter`" to acknowledge this message"
-    } elseif ($DeleteFilesWithoutMovingThem -and $ADUser.HomeDirectory) {
-            Remove-TervisADUserHomeDirectory -Identity $Identity -DeleteFilesWithoutMovingThem
+    if ($DeleteFilesWithoutMovingThem -and $ADUser.HomeDirectory) {
+        Remove-TervisADUserHomeDirectory -Identity $Identity
     } elseif ($ADUser.HomeDirectory) {
-        Remove-TervisADUserHomeDirectory -Identity $Identity -IdentityOfUserToReceiveHomeDirectoryFiles $IdentityOfUserToReceiveData
+        Invoke-TervisADUserShareHomeDirectoryPathAndClearHomeDirectoryProperty -Identity $Identity -IdentityOfUserToAccessHomeDirectoryFiles $IdentityOfUserToReceiveData
     }
     
     Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToReceiveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveData -AzureADConnectComputerName dirsync
