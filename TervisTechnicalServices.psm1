@@ -206,6 +206,7 @@ function Remove-TervisUser {
     }
     
     Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToReceiveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveData -AzureADConnectComputerName dirsync
+    Remove-TervisADUser -Identity $Identity
 
     if ($UserWasITEmployee) {
         Send-ITTerminationEmails -Identity $Identity
