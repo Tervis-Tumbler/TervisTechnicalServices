@@ -268,10 +268,10 @@ function Remove-TervisProductionUser {
     $OnPremMailboxExists = Test-TervisUserHasOnPremMailbox -Identity $Identity
 
     if($MSOnlineMailboxExists) {
-        Write-Output "The user account $Identity has an Office 365 mailbox.  Please contact their manager to see if they need access to the user's email."
+        Write-Output "The user account $Identity has an Office 365 mailbox.  Please run the function 'Remove-TervisUser' for this user."
 
     } elseif($OnPremMailboxExists) {
-        Write-Output "The user account $Identity has an On Premises Exchange 2010 mailbox.  Please contact their manager to see if they need access to the user's email."
+        Write-Output "The user account $Identity has an On Premises Exchange 2016 mailbox.  Please contact their manager to see if they need access to the user's email."
         } else {
         Write-Output "User has no mailbox, removing user account."
         Remove-ADUser -Identity $Identity -Confirm
