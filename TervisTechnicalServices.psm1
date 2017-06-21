@@ -277,3 +277,14 @@ function Remove-TervisProductionUser {
         Remove-ADUser -Identity $Identity -Confirm
         }
 }
+
+function Get-EBSResponsibility {
+    param (
+        $PathToMatrix = "\\tervis.prv\Applications\PowerShell\EBSResponsibilityMatrix\EBS Responsibility Owner_Approver Matrix_09JUN2017.csv",
+        [ValidateSet(
+            "Development Manager","Tervis Advanced Supply Chain Planner","Tervis Approval Setup","Tervis Batch Requests","Tervis BI Fin SCOM Analyst","Tervis BI FIN SCOM End User","Tervis BI FIN SCOM Super User","Tervis BI SCOM Analyst","Tervis BI SCOM End User","Tervis BI SCOM Super User","Tervis Bills of Material","Tervis BOM Inquiry","Tervis Buyer (Stores)","Tervis Buyer/Planner","Tervis Cash Management Superuser","Tervis Cash Management User","Tervis Concurrent Request Support","Tervis Contract MFG","Tervis Cost Management - SLA","Tervis Cost Management User","Tervis CRM Resource Manager","Tervis Desktop Integrator","Tervis Discoverer Reports","Tervis Expense Report Signing Limits","Tervis Finance Order Management","Tervis Fixed Assets Manager","Tervis Flow Manufacturing","Tervis General Ledger Budget","Tervis Help Desk","Tervis Internet Expenses","Tervis Internet Expenses Auditor","Tervis Internet Expenses Setup and Administration","Tervis Inventory & Manufacturing","Tervis Inventory Inquiry","Tervis Inventory Steward","Tervis Inventory Super User","Tervis Inventory/Receiving","Tervis Inventory/Receiving - Lakeland","Tervis iProcurement","Tervis iProcurement (Internal Requisitions)","Tervis iProcurement (Tervis Stores)","Tervis Location Setup","Tervis Manufacturing Engineer","Tervis Materials & Mfg","Tervis OM CC User","Tervis OM Custom","Tervis OM Inquiry","Tervis OM IT","Tervis OM Item Orderability","Tervis OM Management Team","Tervis OM Pricing","Tervis OM Sales Rep","Tervis OM Super User","Tervis OM User","Tervis Payables Inquiry","Tervis Payables Invoice Inquiry","Tervis Payables Manager","Tervis Payables User","Tervis Payments Setup Administrator","Tervis PIM Data Steward","Tervis PIM Data Viewer","Tervis PIM Data Viewer Plus Import","Tervis Production Control","Tervis Purchasing Accounting","Tervis Purchasing Inquiry","Tervis Purchasing Super User","Tervis Receivables Manager","Tervis Receivables User","Tervis Replenishment Buyer","Tervis RXI","Tervis Sales Support","Tervis Supply Chain Planner","Tervis Tax Managers","Tervis Trade Management Administrator","Tervis Trade Management User","Tervis Trading Community Manager","Tervis US HRMS Manager","Tervis WEB Data Integration","Tervis Work in Process"
+        )]$ResponsibilityName
+    )
+    $Matrix = Import-Csv -Path $PathToMatrix
+    $Matrix | where ResponsibilityName -EQ $ResponsibilityName
+}
