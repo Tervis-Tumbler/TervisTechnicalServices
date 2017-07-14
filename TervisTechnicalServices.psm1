@@ -313,6 +313,14 @@ Help Desk
     }
 }
 
+function Get-EBSResponsibilityApprovalMatrix {
+    param(
+        $PathToMatrix = "\\$(Get-DomainName -ComputerName $env:COMPUTERNAME)\applications\PowerShell\EBSResponsibilityMatrix\EBSResponsibilityOwnerApproverMatrix.csv"
+    )
+    $Matrix = Import-Csv -Path $PathToMatrix
+    $MatrixGridResponsibilities = $Matrix | Out-GridView -PassThru
+}
+
 function New-TervisProductionUser{
     param(
         [parameter(mandatory)]$FirstName,
