@@ -1,4 +1,4 @@
-﻿#Requires -Modules TervisCUCM, TervisCUPI, CUCMPowerShell, TervisActiveDirectory, TervisMSOnline
+﻿#Requires -Modules TervisCUCM, TervisCUPI, CUCMPowerShell, TervisActiveDirectory, TervisMSOnline, TervisApplication
 
 function Install-TervisTechnicalServices {
     if(-not (Get-PasswordStateAPIKey -ErrorAction SilentlyContinue)){
