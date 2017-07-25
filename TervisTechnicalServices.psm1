@@ -496,7 +496,7 @@ function New-TervisContractor {
     
             
             if ($MiddleInitial) {
-                $ContractorADUser = New-ADUser `
+               New-ADUser `
                     -SamAccountName $Username `
                     -Name $DisplayName `
                     -GivenName $FirstName `
@@ -514,7 +514,7 @@ function New-TervisContractor {
                     -Manager $ManagerDN `
                     -Enabled $true
             } else {
-                $ContractorADUser = New-ADUser `
+                New-ADUser `
                     -SamAccountName $Username `
                     -Name $DisplayName `
                     -GivenName $FirstName `
@@ -531,8 +531,9 @@ function New-TervisContractor {
                     -Manager $ManagerDN `
                     -Enabled $true
             }
-            Add-ADGroupMember $CompanySecurityGroup -Members $ContractorADUser
+            Add-ADGroupMember $CompanySecurityGroup -Members $UserName
             New-MailContact -FirstName $FirstName -LastName $LastName -Name $DisplayName -ExternalEmailAddress $EmailAddress 
+            
             $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
             New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title $DisplayName -Username $LogonName -Password $SecurePW
     
