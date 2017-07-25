@@ -435,3 +435,136 @@ function New-TervisProductionUsers{
         Invoke-Command -ComputerName $DC -ScriptBlock {repadmin /syncall}
         Start-Sleep 30
 }
+
+function New-TervisContractor {
+    [CmdletBinding()]
+    Param(
+        [parameter(mandatory)]$FirstName,
+        [parameter(mandatory)]$LastName,
+        [parameter(Mandatory)]$EmailAddress,
+        [parameter(mandatory)]$ManagerUserName,
+        [parameter(mandatory)]$Title
+    )
+    DynamicParam {
+            $ParameterName = 'Company'
+            $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Position = 4
+            $AttributeCollection.Add($ParameterAttribute)
+            $arrSet = Get-TervisContractorDefinition -All
+            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
+            $AttributeCollection.Add($ValidateSetAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
+            return $RuntimeParameterDictionary
+    }
+    begin {
+        $Company = $PsBoundParameters[$ParameterName]
+    }
+    
+    process {
+        [string]$FirstInitialLastName = $FirstName[0] + $LastName
+        [string]$FirstNameLastInitial = $FirstName + $LastName[0]
+    
+        If (!(Get-ADUser -filter {sAMAccountName -eq $FirstInitialLastName})) {
+            [string]$UserName = $FirstInitialLastName.substring(0).tolower()
+            Write-Host "UserName is $UserName" -ForegroundColor Green
+        } elseif (!(Get-ADUser -filter {sAMAccountName -eq $FirstNameLastInitial})) {
+            [string]$UserName = $FirstNameLastInitial
+            Write-Host 'First initial + last name is in use.' -ForegroundColor Red
+            Write-Host "UserName is $UserName" -ForegroundColor Green
+        } else {
+            Write-Host 'First initial + last name is in use.' -ForegroundColor Red
+            Write-Host 'First name + last initial is in use.' -ForegroundColor Red
+            Write-Host 'You will need to manually define $UserName' -ForegroundColor Red
+            $UserName = $null
+        }
+    
+        If (!($UserName -eq $null)) {
+    
+            [string]$AdDomainNetBiosName = (Get-ADDomain | Select -ExpandProperty NetBIOSName).substring(0).tolower()
+            [string]$DisplayName = $FirstName + ' ' + $LastName
+            [string]$UserPrincipalName = $username + '@' + $AdDomainNetBiosName + '.com'
+            [string]$LogonName = $AdDomainNetBiosName + '\' + $username
+            [string]$Path = Get-ADUser | select distinguishedname -ExpandProperty distinguishedname | Get-ADObjectParentContainer
+            $ManagerDN = Get-ADUser $ManagerUserName | Select -ExpandProperty DistinguishedName
+            $ManagerOU = Get-ADObjectParentContainer -ObjectPath $ManagerDN
+            $CompanySecurityGroup = Get-ADGroup -Identity $Company
+            $PW= Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
+            $SecurePW = ConvertTo-SecureString $PW -asplaintext -force
+    
+            $OnPremiseCredential = Import-Clixml $env:USERPROFILE\OnPremiseExchangeCredential.txt
+            
+            if ($MiddleInitial) {
+                $ContractorADUser = New-ADUser `
+                    -SamAccountName $Username `
+                    -Name $DisplayName `
+                    -GivenName $FirstName `
+                    -Surname $LastName `
+                    -Initials $MiddleInitial `
+                    -UserPrincipalName $UserPrincipalName `
+                    -AccountPassword $SecurePW `
+                    -ChangePasswordAtLogon $true `
+                    -Path $Path `
+                    -Company $Company `
+                    -Department $Department `
+                    -Office $Department `
+                    -Description $Title `
+                    -Title $Title `
+                    -Manager $ManagerDN `
+                    -Enabled $true
+            } else {
+                $ContractorADUser = New-ADUser `
+                    -SamAccountName $Username `
+                    -Name $DisplayName `
+                    -GivenName $FirstName `
+                    -Surname $LastName `
+                    -UserPrincipalName $UserPrincipalName `
+                    -AccountPassword $SecurePW `
+                    -ChangePasswordAtLogon $true `
+                    -Path $Path `
+                    -Company $Company `
+                    -Department $Department `
+                    -Office $Department `
+                    -Description $Title `
+                    -Title $Title `
+                    -Manager $ManagerDN `
+                    -Enabled $true
+            }
+            Add-ADGroupMember $CompanySecurityGroup -Members $ContractorADUser
+            New-MailContact -FirstName $FirstName -LastName $LastName -Name $DisplayName -ExternalEmailAddress $EmailAddress 
+            $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
+            New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title $DisplayName -Username $LogonName -Password $SecurePW
+    
+            Write-Verbose "Forcing a sync between domain controllers"
+            $DC = Get-ADDomainController | Select -ExpandProperty HostName
+            Invoke-Command -ComputerName $DC -ScriptBlock {repadmin /syncall}
+            Start-Sleep 30
+    
+        }
+    }
+}
+
+function Get-TervisContractorDefinition {
+    Param(
+        [parameter(Mandatory, ParameterSetName="Specify Company Name")]$Company,
+        [parameter(Mandatory, ParameterSetName="Return All")][switch]$All
+    )
+    if ($All) { 
+        $TervisContractorDefinitions 
+    }
+    else {
+        $TervisContractorDefinitions | where name -eq $Company
+    }
+}
+
+$TervisContractorDefinitions = [PSCustomObject][Ordered] @{
+    Name = "Trevera"
+    RoleSecurityGroup = "OracleManagedServices"
+},
+[PSCustomObject][Ordered] @{
+    Name = "Oracle Managed Services"
+    RoleSecurityGroup = "Oracle Managed Services"
+}
