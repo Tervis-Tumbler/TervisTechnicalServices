@@ -453,7 +453,7 @@ function New-TervisContractor {
             $ParameterAttribute.Mandatory = $true
             $ParameterAttribute.Position = 4
             $AttributeCollection.Add($ParameterAttribute)
-            $arrSet = Get-TervisContractorDefinition -All
+            $arrSet = Get-TervisContractorDefinition -All | select Name -ExpandProperty Name
             $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
             $AttributeCollection.Add($ValidateSetAttribute)
             $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
@@ -488,14 +488,12 @@ function New-TervisContractor {
             [string]$DisplayName = $FirstName + ' ' + $LastName
             [string]$UserPrincipalName = $username + '@' + $AdDomainNetBiosName + '.com'
             [string]$LogonName = $AdDomainNetBiosName + '\' + $username
-            [string]$Path = Get-ADUser | select distinguishedname -ExpandProperty distinguishedname | Get-ADObjectParentContainer
+            [string]$Path = Get-ADUser $ManagerUserName | select distinguishedname -ExpandProperty distinguishedname | Get-ADObjectParentContainer
             $ManagerDN = Get-ADUser $ManagerUserName | Select -ExpandProperty DistinguishedName
-            $ManagerOU = Get-ADObjectParentContainer -ObjectPath $ManagerDN
             $CompanySecurityGroup = Get-ADGroup -Identity $Company
             $PW= Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
             $SecurePW = ConvertTo-SecureString $PW -asplaintext -force
     
-            $OnPremiseCredential = Import-Clixml $env:USERPROFILE\OnPremiseExchangeCredential.txt
             
             if ($MiddleInitial) {
                 $ContractorADUser = New-ADUser `
