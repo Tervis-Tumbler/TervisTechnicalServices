@@ -540,8 +540,7 @@ function New-TervisContractor {
             Write-Verbose "Forcing a sync between domain controllers"
             $DC = Get-ADDomainController | Select -ExpandProperty HostName
             Invoke-Command -ComputerName $DC -ScriptBlock {repadmin /syncall}
-            Start-Sleep 30
-    
+            Send-TervisContractorWelcomeLetter -Name $DisplayName -EmailAddress $EmailAddress
         }
     }
 }
@@ -566,4 +565,34 @@ $TervisContractorDefinitions = [PSCustomObject][Ordered] @{
 [PSCustomObject][Ordered] @{
     Name = "Oracle Managed Services"
     RoleSecurityGroup = "Oracle Managed Services"
+}
+
+function Send-TervisContractorWelcomeLetter {
+    param (
+        [parameter(Mandatory)]$Name,
+        [parameter(Mandatory)]$EmailAddress
+    )
+
+    $TervisContractorWelcomeLetterSubject = "Tervis Contractor Account Setup"
+    $TervisContractorWelcomeLetter = @"
+    $Name,
+     
+    This email is to verify that your account has been setup correctly. This email should forward to your external mailbox.
+    
+    To receive your credentials for our environment, please call the helpdesk at 941.441.3168.
+     
+    Before logging in, you will be required to change your password by going to https://adfs.tervis.com/adfs/portal/updatepassword. This password must include at minimum 6 characters, 1 capital, 1 number, and must not include your name.
+     
+    Remote Desktop and RemoteApps can be accessed by browsing to https://rdweb.tervis.com/rdweb via Internet Explorer.
+
+    You will also be able to access our Sharepoint server with a VPN connection via the URL https://sharepoint.tervis.com
+       
+    If you require any assistance interfacing with our infrastructure please feel free to call the helpdesk at 941.441.3168 or email tthelpdesk@tervis.com
+    
+    Thanks,
+    Tervis IT
+"@
+
+    Send-MailMessage -To $EmailAddress -From "technicalservices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -SmtpServer cudaspam.tervis.com
+
 }
