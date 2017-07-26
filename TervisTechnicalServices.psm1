@@ -296,6 +296,7 @@ function Send-EBSResponsibilityApprovalRequestEmail {
         if ($EBSResponsibilityApprover -ne "none") {
             $From = "helpdeskteam@tervis.com"
             $To = $EBSResponsibilityApproverEmail
+            $Cc = "helpdeskteam@tervis.com"
             $Subject = "Approval of EBS Responsibility $EBSResponsibilityName for $EBSUsernameOfEmployeeNeedingEBSResponsibility"
             $Body = 
 @"
