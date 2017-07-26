@@ -296,7 +296,6 @@ function Send-EBSResponsibilityApprovalRequestEmail {
         if ($EBSResponsibilityApprover -ne "none") {
             $From = "helpdeskteam@tervis.com"
             $To = $EBSResponsibilityApproverEmail
-            $Cc = "helpdeskteam@tervis.com"
             $Subject = "Approval of EBS Responsibility $EBSResponsibilityName for $EBSUsernameOfEmployeeNeedingEBSResponsibility"
             $Body = 
 @"
@@ -444,7 +443,8 @@ function New-TervisContractor {
         [parameter(mandatory)]$LastName,
         [parameter(Mandatory)]$EmailAddress,
         [parameter(mandatory)]$ManagerUserName,
-        [parameter(mandatory)]$Title
+        [parameter(mandatory)]$Title,
+        [parameter]$Description = " "
     )
     DynamicParam {
             $ParameterName = 'Company'
@@ -491,6 +491,9 @@ function New-TervisContractor {
             [string]$LogonName = $AdDomainNetBiosName + '\' + $username
             [string]$Path = Get-ADUser $ManagerUserName | select distinguishedname -ExpandProperty distinguishedname | Get-ADObjectParentContainer
             $ManagerDN = Get-ADUser $ManagerUserName | Select -ExpandProperty DistinguishedName
+            if ((Get-ADGroup -Filter {SamAccountName -eq $Company}) -eq $null ){
+                New-ADGroup -Name $Company -GroupScope Universal -GroupCategory Security
+            }
             $CompanySecurityGroup = Get-ADGroup -Identity $Company
             $PW= Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
             $SecurePW = ConvertTo-SecureString $PW -asplaintext -force
@@ -507,6 +510,7 @@ function New-TervisContractor {
                     -AccountPassword $SecurePW `
                     -ChangePasswordAtLogon $true `
                     -Path $Path `
+                    -Description $Description `
                     -Company $Company `
                     -Department $Department `
                     -Office $Department `
@@ -584,10 +588,9 @@ To receive your credentials for our environment, please call the helpdesk at 941
  
 Before logging in, you will be required to change your password by going to https://adfs.tervis.com/adfs/portal/updatepassword. This password must include at minimum 6 characters, 1 capital, 1 number, and must not include your name.
  
-Remote Desktop and RemoteApps can be accessed by browsing to https://rdweb.tervis.com/rdweb via Internet Explorer.
+To install the Cisco VPN agent, navigate to https://ciscovpn.tervis.com. You will need to log in using the Tervis domain and username (i.e. tervis\myusername)
+Remote Desktop and RemoteApps can be accessed by browsing to https://rdweb.tervis.com/rdweb via Internet Explorer. You will also be able to access our Sharepoint server with a VPN connection via the URL https://sharepoint.tervis.com
 
-You will also be able to access our Sharepoint server with a VPN connection via the URL https://sharepoint.tervis.com
-   
 If you require any assistance interfacing with our infrastructure please feel free to call the helpdesk at 941.441.3168 or email tthelpdesk@tervis.com
 
 Thanks,
