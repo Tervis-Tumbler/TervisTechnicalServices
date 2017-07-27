@@ -444,7 +444,7 @@ function New-TervisContractor {
         [parameter(Mandatory)]$EmailAddress,
         [parameter(mandatory)]$ManagerUserName,
         [parameter(mandatory)]$Title,
-        [parameter]$Description = " "
+        [parameter(Mandatory)]$Description
     )
     DynamicParam {
             $ParameterName = 'Company'
@@ -514,7 +514,7 @@ function New-TervisContractor {
                     -Company $Company `
                     -Department $Department `
                     -Office $Department `
-                    -Description $Title `
+                    -Description $Description `
                     -Title $Title `
                     -Manager $ManagerDN `
                     -Enabled $true
@@ -531,7 +531,7 @@ function New-TervisContractor {
                     -Company $Company `
                     -Department $Department `
                     -Office $Department `
-                    -Description $Title `
+                    -Description $Description `
                     -Title $Title `
                     -Manager $ManagerDN `
                     -Enabled $true
