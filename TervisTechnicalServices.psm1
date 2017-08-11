@@ -281,8 +281,8 @@ function Remove-TervisProductionUser {
 function Send-EBSResponsibilityApprovalRequestEmail {
     param(
         [parameter(mandatory)]$EBSUsernameOfEmployeeNeedingEBSResponsibility,
-        [parameter()]$EmailToCc,
-        [parameter()]$PathToMatrix = "\\$(Get-DomainName -ComputerName $env:COMPUTERNAME)\applications\PowerShell\EBSResponsibilityMatrix\EBSResponsibilityOwnerApproverMatrix.csv"
+        [parameter(mandatory)]$EmailToCc = "helpdeskteam@tervis.com",
+        [parameter(mandatory)]$PathToMatrix = "\\$(Get-DomainName -ComputerName $env:COMPUTERNAME)\applications\PowerShell\EBSResponsibilityMatrix\EBSResponsibilityOwnerApproverMatrix.csv"
     )
     
     $Matrix = Import-Csv -Path $PathToMatrix
