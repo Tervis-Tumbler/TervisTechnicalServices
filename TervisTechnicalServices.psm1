@@ -281,8 +281,8 @@ function Remove-TervisProductionUser {
 function Send-EBSResponsibilityApprovalRequestEmail {
     param(
         [parameter(mandatory)]$EBSUsernameOfEmployeeNeedingEBSResponsibility,
-        [parameter(mandatory)]$EmailToCc = "helpdeskteam@tervis.com",
-        [parameter(mandatory)]$PathToMatrix = "\\$(Get-DomainName -ComputerName $env:COMPUTERNAME)\applications\PowerShell\EBSResponsibilityMatrix\EBSResponsibilityOwnerApproverMatrix.csv"
+        [parameter()]$EmailToCc = "helpdeskteam@tervis.com",
+        [parameter()]$PathToMatrix = "\\$(Get-DomainName -ComputerName $env:COMPUTERNAME)\applications\PowerShell\EBSResponsibilityMatrix\EBSResponsibilityOwnerApproverMatrix.csv"
     )
     
     $Matrix = Import-Csv -Path $PathToMatrix
@@ -310,6 +310,22 @@ Thanks,
 Help Desk
 "@
             Send-TervisMailMessage -To $To -From $From -Subject $Subject -Body $Body -Cc $EmailToCc
+        }
+        elseif ($EBSResponsibilityApprover -eq "none") {
+            $From = "helpdeskteam@tervis.com"
+            $To = "helpdeskteam@tervis.com"
+            $Subject = "Approval of EBS Responsibility $EBSResponsibilityName for $EBSUsernameOfEmployeeNeedingEBSResponsibility"
+            $Body = 
+@"
+HelpDesk,
+
+$EBSResponsibilityName requires no approval for user $EBSUsernameOfEmployeeNeedingEBSResponsibility.
+
+Thanks,
+
+Help Desk
+"@
+            Send-TervisMailMessage -To $To -From $From -Subject $Subject -Body $Body
         }
     }
 }
