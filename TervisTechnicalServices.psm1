@@ -236,7 +236,7 @@ function Send-ITTerminationEmails {
     
     $Emails = (
         ($EmailAddressToCDW = "andydai@cdw.com"),
-        ($EmailAddressToSHI = "anthony_geremia@shi.com; todd_rigden@shi.com"),
+        ($EmailAddressToSHI = "kayla_reger@shi.com"),
         ($EmailAddressToDell = "russel_dunn@dell.com"),
         ($EmailAddressToATT = "joe.rivkin@att.net")
     )
