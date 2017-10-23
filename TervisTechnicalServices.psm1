@@ -588,6 +588,10 @@ $TervisContractorDefinitions = [PSCustomObject][Ordered] @{
 [PSCustomObject][Ordered] @{
     Name = "Oracle Managed Services"
     RoleSecurityGroup = "Oracle Managed Services"
+},
+[PSCustomObject][Ordered] @{
+    Name = "Fadel"
+    RoleSecurityGroup = "Fadel"
 }
 
 function Send-TervisContractorWelcomeLetter {
