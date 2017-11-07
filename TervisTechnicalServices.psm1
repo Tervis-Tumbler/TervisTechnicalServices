@@ -350,10 +350,7 @@ function New-TervisProductionUsers{
 
         New-TervisProductionUser -FirstName $FirstName -LastName $LastName -AzureADConnectComputerName DirSync -MultipleUsers -Verbose
     }
-        Write-Verbose "Forcing a sync between domain controllers"
-        $DC = Get-ADDomainController | select -ExpandProperty HostName
-        Invoke-Command -ComputerName $DC -ScriptBlock {repadmin /syncall}
-        Start-Sleep 30
+    Sync-ADDomainControllers
 }
 
 function Get-TervisContractorDefinition {
