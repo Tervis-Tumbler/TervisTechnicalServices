@@ -12,21 +12,24 @@ function Install-TervisTechnicalServices {
 
 function New-TervisEmployee {
     param(
-        $GivenName,
-        $SurName
-
+        [parameter(mandatory)]$GivenName,
+        [parameter(mandatory)]$SurName,
+        [parameter(mandatory)]$ManagerSAMAccountName,
+        [parameter(mandatory)]$Department,
+        [parameter(mandatory)]$Title,
+        $Company = "Tervis",
+        [parameter(mandatory)]$SAMAccountNameToBeLike,
+        [switch]$UserHasTheirOwnDedicatedComputer
     )
-    $UserName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
+    $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
     
     $PW = Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
     $SecurePW = ConvertTo-SecureString $PW -asplaintext -force 
 
     $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
-    New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title $DisplayName -Username $LogonName -Password $SecurePW
+    New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title "$GivenName $LastName" -Username $SAMAccountName -Password $SecurePW
 
-    New-TervisWindowsUser 
-
-
+    New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
 }
 
 function New-TervisMESUser {
