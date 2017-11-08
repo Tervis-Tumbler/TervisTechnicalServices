@@ -13,13 +13,20 @@ function Install-TervisTechnicalServices {
 function New-TervisEmployee {
     param(
         $GivenName,
-        $SurName,
-        $EmployeeID,
-        $EmployeeIDOfExistingEmployeeToModelPermissionsAfter,
-        [Switch]$Mac,
-        [Switch]$Laptop,
-        [Switch]$DualMonitors
+        $SurName
+
     )
+    $UserName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
+    
+    $PW = Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
+    $SecurePW = ConvertTo-SecureString $PW -asplaintext -force 
+
+    $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
+    New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title $DisplayName -Username $LogonName -Password $SecurePW
+
+    New-TervisWindowsUser 
+
+
 }
 
 function New-TervisMESUser {
