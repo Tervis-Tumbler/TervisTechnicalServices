@@ -27,7 +27,7 @@ function New-TervisEmployee {
     $SecurePW = ConvertTo-SecureString $PW -asplaintext -force 
 
     $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
-    New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title "$GivenName $LastName" -Username $SAMAccountName -Password $SecurePW
+    New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -Password $SecurePW
 
     New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
 }
