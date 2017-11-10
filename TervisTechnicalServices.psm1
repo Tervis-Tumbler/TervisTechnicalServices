@@ -10,50 +10,40 @@ function Install-TervisTechnicalServices {
     Invoke-EnvironmentVariablesRefresh
 }
 
-function New-TervisEmployee {
+function New-TervisPerson {
     param(
-        [parameter(mandatory)]$GivenName,
-        [parameter(mandatory)]$SurName,
-        [parameter(mandatory)]$ManagerSAMAccountName,
-        [parameter(mandatory)]$Department,
-        [parameter(mandatory)]$Title,
-        $Company = "Tervis",
-        [parameter(mandatory)]$SAMAccountNameToBeLike,
-        [switch]$UserHasTheirOwnDedicatedComputer
+        [parameter(ParameterSetName="BusinessUser")][Switch]$Employee,
+        [parameter(ParameterSetName="MESOnly")][Switch]$MESOnly,
+
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]
+        [parameter(Mandatory,ParameterSetName="MESOnly",ValueFromPipelineByPropertyName)]
+        $GivenName,
+
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]
+        [parameter(Mandatory,ParameterSetName="MESOnly",ValueFromPipelineByPropertyName)]
+        $SurName,
+
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]$ManagerSAMAccountName,
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]$Department,
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]$Title,
+        [parameter(ParameterSetName="BusinessUser")]$Company = "Tervis",
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]$SAMAccountNameToBeLike,
+        [parameter(ParameterSetName="BusinessUser")][switch]$UserHasTheirOwnDedicatedComputer
     )
     $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
     
     $PW = Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
     $SecurePW = ConvertTo-SecureString $PW -asplaintext -force 
 
-    $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
-    New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -Password $SecurePW
+    if ($Employee) {
+        $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
+        New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -Password $SecurePW
+        New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
+    }
 
-    New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
-}
-
-function New-TervisMESUser {
-    param(
-        [Parameter(ValueFromPipeline,Mandatory)]$FirstName,
-        [Parameter(ValueFromPipeline,Mandatory)]$LastName,
-        [Parameter(ValueFromPipeline,Mandatory)]$Username,
-        [Parameter(ValueFromPipeline)]$MiddleInitial
-    )
-    $OUPath = "OU=Users,OU=Production Floor,OU=Operations,OU=Departments,DC=tervis,DC=prv"
-    $UPN = "$Username@tervis.prv"
-    $Department = "Production"
-
-    if($MiddleInitial) {
-    
-        New-ADUser -Name "$FirstName $MiddleInitial $LastName" -GivenName $FirstName -Surname $LastName -Initials $MiddleInitial -DisplayName "$FirstName $MiddleInitial $LastName" -UserPrincipalName $UPN -Path $OUPath -SamAccountName $Username -Department $Department
-        
-        }
-
-        else {
-
-        New-ADUser -Name "$FirstName $LastName" -GivenName $FirstName -Surname $LastName -DisplayName "$FirstName $LastName" -UserPrincipalName $UPN -Path $OUPath -SamAccountName $Username -Department $Department
-
-        }
+    if ($MESOnly) {
+        New-TervisProductionUser -GivenName $GivenName -SurName $SurName -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
+    }
 }
 
 function Invoke-TervisVOIPTerminateUser {
@@ -348,19 +338,12 @@ function Get-EBSResponsibilityApprovalMatrix {
     $MatrixGridResponsibilities = $Matrix | Out-GridView -PassThru
 }
 
-function New-TervisProductionUsers{
+function New-TervisProductionUsers {
     param(
         $PathToCSV = "\\$(Get-DomainName -ComputerName $env:COMPUTERNAME)\applications\PowerShell\New-TervisProductionUsers\TervisProductionUsers.csv"
     )
     $TervisProductionUsers = Import-Csv -Path $PathToCSV
-
-    foreach ($TervisProductionUser in $TervisProductionUsers){
-        $FirstName = $TervisProductionUser.FirstName
-        $LastName = $TervisProductionUser.LastName
-
-        New-TervisProductionUser -FirstName $FirstName -LastName $LastName -AzureADConnectComputerName DirSync -MultipleUsers -Verbose
-    }
-    Sync-ADDomainControllers
+    $TervisProductionUsers | New-TervisPerson -MESOnly
 }
 
 function Get-TervisContractorDefinition {
