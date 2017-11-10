@@ -30,19 +30,21 @@ function New-TervisPerson {
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$SAMAccountNameToBeLike,
         [parameter(ParameterSetName="BusinessUser")][switch]$UserHasTheirOwnDedicatedComputer
     )
-    $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
+    process {
+        $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
     
-    $PW = Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
-    $SecurePW = ConvertTo-SecureString $PW -asplaintext -force 
+        $PW = Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
+        $SecurePW = ConvertTo-SecureString $PW -asplaintext -force 
 
-    if ($Employee) {
-        $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
-        New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -Password $SecurePW
-        New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
-    }
+        if ($Employee) {
+            $NewUserCredential = Import-PasswordStateApiKey -Name 'NewUser'
+            New-PasswordStatePassword -ApiKey $NewUserCredential -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -Password $SecurePW
+            New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
+        }
 
-    if ($MESOnly) {
-        New-TervisProductionUser -GivenName $GivenName -SurName $SurName -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
+        if ($MESOnly) {
+            New-TervisProductionUser -GivenName $GivenName -SurName $SurName -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
+        }
     }
 }
 
