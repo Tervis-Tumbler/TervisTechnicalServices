@@ -30,6 +30,9 @@ function New-TervisPerson {
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$SAMAccountNameToBeLike,
         [parameter(ParameterSetName="BusinessUser")][switch]$UserHasTheirOwnDedicatedComputer
     )
+    begin {
+        $MESUsers = @()
+    }
     process {
         $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
     
@@ -43,8 +46,20 @@ function New-TervisPerson {
         }
 
         if ($MESOnly) {
+            $MESUsers += [PSCustomObject]@{
+                GivenName = $GivenName
+                SurName = $SurName
+                SAMAccountName = $SAMAccountName
+            }
+
             New-TervisProductionUser -GivenName $GivenName -SurName $SurName -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
         }
+    }
+    end {
+        $MESUsers | Add-Member -MemberType ScriptProperty -Name ADUser -Value {
+            Get-ADUser -Identity  $This.SAMAccountName
+        }
+        $MESUsers
     }
 }
 
