@@ -51,7 +51,6 @@ function New-TervisPerson {
                 SurName = $SurName
                 SAMAccountName = $SAMAccountName
             }
-
             New-TervisProductionUser -GivenName $GivenName -SurName $SurName -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
         }
     }
