@@ -222,7 +222,7 @@ function Remove-TervisUser {
         Invoke-TervisADUserShareHomeDirectoryPathAndClearHomeDirectoryProperty -Identity $Identity -IdentityOfUserToAccessHomeDirectoryFiles $IdentityOfUserToReceiveData
     }
     
-    Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToReceiveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveData -AzureADConnectComputerName dirsync
+    Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToReceiveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveData
     Remove-TervisADUser -Identity $Identity
 
     if ($UserWasITEmployee) {
@@ -281,18 +281,17 @@ function Remove-TervisProductionUser {
     param(
         [Parameter(Mandatory)]$Identity
     )
-    $MSOnlineMailboxExists = Test-TervisUserHasMSOnlineMailbox -Identity $Identity
-    $OnPremMailboxExists = Test-TervisUserHasOnPremMailbox -Identity $Identity
+    $ADuser = Get-TervisADUser -Identity $Identity
 
-    if($MSOnlineMailboxExists) {
+    if($ADuser.O365Mailbox) {
         Write-Output "The user account $Identity has an Office 365 mailbox.  Please run the function 'Remove-TervisUser' for this user."
 
-    } elseif($OnPremMailboxExists) {
+    } elseif ($ADuser.ExchangeMailbox) {
         Write-Output "The user account $Identity has an On Premises Exchange 2016 mailbox.  Please contact their manager to see if they need access to the user's email."
-        } else {
+    } else {
         Write-Output "User has no mailbox, removing user account."
         Remove-ADUser -Identity $Identity -Confirm
-        }
+    }
 }
 
 function Send-EBSResponsibilityApprovalRequestEmail {
