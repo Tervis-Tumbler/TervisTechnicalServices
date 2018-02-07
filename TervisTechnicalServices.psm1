@@ -180,6 +180,7 @@ function Send-EBSResponsibilityApprovalRequestEmail {
         $EBSResponsibilityApprover = $EBSResponsibility.Approver
         $EBSResponsibilityApproverEmail = $EBSResponsibility.ApproverEmail
         $EBSResponsibilityName = $EBSResponsibility.ResponsibilityName
+        $EBSResponsibilitySpecialNote = $EBSResponsibility.SpecialNote
 
         if ($EBSResponsibilityApprover -ne "none") {
             $From = "helpdeskteam@tervis.com"
@@ -191,6 +192,8 @@ $EBSResponsibilityApprover,
 
 Do you approve of EBS user $EBSUsernameOfEmployeeNeedingEBSResponsibility having access to the following EBS responsibility?
 $EBSResponsibilityName
+
+$EBSResponsibilitySpecialNote
 
 Thanks,
 
