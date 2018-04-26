@@ -8,6 +8,7 @@ function Install-TervisTechnicalServices {
     Install-TervisCUCM
     Install-TervisCUPI
     Invoke-EnvironmentVariablesRefresh
+    Install-TervisTechnicalServicesWindowsServer
 }
 
 function New-TervisPerson {
