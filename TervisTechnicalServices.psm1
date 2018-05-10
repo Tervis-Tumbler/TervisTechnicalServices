@@ -149,7 +149,7 @@ function Remove-TervisProductionUser {
     param(
         [Parameter(Mandatory)]$Identity
     )
-    $ADuser = Get-TervisADUser -Identity $Identity
+    $ADuser = Get-TervisADUser -Identity $Identity -IncludeMailboxProperties
 
     if($ADuser.O365Mailbox) {
         Write-Output "The user account $Identity has an Office 365 mailbox.  Please run the function 'Remove-TervisUser' for this user."
