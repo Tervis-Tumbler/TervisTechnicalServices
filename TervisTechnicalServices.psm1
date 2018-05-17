@@ -65,14 +65,12 @@ function Remove-TervisPerson {
         [Parameter(Mandatory)]$Identity,
         [Parameter(Mandatory, ParameterSetName="ManagerReceivesData")][Switch]$ManagerReceivesData,
         [Parameter(Mandatory, ParameterSetName="AnotherUserReceivesData")]$IdentityOfUserToReceiveData,
-        [Parameter(Mandatory, ParameterSetName="NoUserReceivesData")][Switch]$NoUserReceivesData,        
-        [Parameter(ParameterSetName="ManagerReceivesData")][Parameter(ParameterSetName="AnotherUserReceivesData")][Switch]$DeleteFilesWithoutMovingThem,
+        [Parameter(Mandatory, ParameterSetName="NoUserReceivesData")][Switch]$NoUserReceivesData,
         [Switch]$UserWasITEmployee
     )
     $ADUser = Get-ADUser -Identity $Identity -Properties Manager, HomeDirectory
 
     if ($NoUserReceivesData) {
-        $DeleteFilesWithoutMovingThem = $true
         $IdentityOfUserToReceiveData = $null
     }
 
@@ -84,12 +82,6 @@ function Remove-TervisPerson {
     }        
 
     Invoke-TervisVOIPTerminateUser -SamAccountName $Identity -Verbose
-
-    if ($DeleteFilesWithoutMovingThem -and $ADUser.HomeDirectory) {
-        Remove-TervisADUserHomeDirectory -Identity $Identity
-    } elseif ($ADUser.HomeDirectory) {
-        Invoke-TervisADUserShareHomeDirectoryPathAndClearHomeDirectoryProperty -Identity $Identity -IdentityOfUserToAccessHomeDirectoryFiles $IdentityOfUserToReceiveData
-    }
     
     Remove-TervisMSOLUser -Identity $Identity -IdentityOfUserToReceiveAccessToRemovedUsersMailbox $IdentityOfUserToReceiveData
     Remove-TervisADUser -Identity $Identity
