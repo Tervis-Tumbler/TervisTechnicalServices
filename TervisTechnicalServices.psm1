@@ -68,7 +68,7 @@ function Remove-TervisPerson {
         [Parameter(Mandatory, ParameterSetName="NoUserReceivesData")][Switch]$NoUserReceivesData,
         [Switch]$UserWasITEmployee
     )
-    $ADUser = Get-ADUser -Identity $Identity -Properties Manager, HomeDirectory
+    $ADUser = Get-ADUser -Identity $Identity -Properties Manager
 
     if ($NoUserReceivesData) {
         $IdentityOfUserToReceiveData = $null
