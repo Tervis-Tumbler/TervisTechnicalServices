@@ -33,12 +33,9 @@ function New-TervisPerson {
     }
     process {
         $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
-    
-        $PW = Get-TempPassword -MinPasswordLength 8 -MaxPasswordLength 12 -FirstChar abcdefghjkmnpqrstuvwxyzABCEFGHJKLMNPQRSTUVWXYZ23456789
-        $SecurePW = ConvertTo-SecureString $PW -asplaintext -force 
 
         if ($Employee) {
-            New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -Password $SecurePW
+            New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword
             New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
             New-TervisCiscoJabber -UserID $SAMAccountName
         }
