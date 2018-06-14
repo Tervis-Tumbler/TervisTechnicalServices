@@ -35,7 +35,8 @@ function New-TervisPerson {
         $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
 
         if ($Employee) {
-            New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword
+            $PasswordStateObject = New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword 
+            $SecurePW = ConvertTo-SecureString -AsPlainText $PasswordStateObject.Password -Force
             New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
             New-TervisCiscoJabber -UserID $SAMAccountName
         }
