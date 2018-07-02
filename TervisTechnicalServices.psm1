@@ -26,7 +26,8 @@ function New-TervisPerson {
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$Title,
         [parameter(ParameterSetName="BusinessUser")]$Company = "Tervis",
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$SAMAccountNameToBeLike,
-        [parameter(ParameterSetName="BusinessUser")][switch]$UserHasTheirOwnDedicatedComputer
+        [parameter(ParameterSetName="BusinessUser")][switch]$UserHasTheirOwnDedicatedComputer,
+        [parameter(ParameterSetName="BusinessUser")][switch]$UserHasMicrosoftTeamPhone
     )
     begin {
         $MESUsers = @()
@@ -37,7 +38,9 @@ function New-TervisPerson {
         if ($Employee) {
             $SecurePW = (New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword) | Select-Object -ExpandProperty Password | ConvertTo-SecureString -AsPlainText -Force
             New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer
-            New-TervisCiscoJabber -UserID $SAMAccountName
+            if ($UserHasMicrosoftTeamPhone) {
+                New-TervisMicrosoftTeamPhone -UserID $SAMAccountName -LocationID "d99a1eb3-f053-448a-86ec-e0d515dc0dea"
+            }
         }
 
         if ($MESOnly) {
