@@ -288,3 +288,18 @@ Tervis IT
         Send-MailMessage -To $EmailAddress -From "technicalservices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -SmtpServer cudaspam.tervis.com -Attachments "$PSScriptRoot\1 - Import the Tervis Root CA.pdf","$PSScriptRoot\2 - Request and install the Vendor certificate through IE 11.pdf","$PSScriptRoot\3 - Set up Cisco AnyConnect to use new profile.pdf"    
     }
 }
+
+function Invoke-OutputFileToRemoteTempPath {
+    param(
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$FileContent
+    )
+    process{
+        $TempFilePath = Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+            $TempFilePath = "$([io.path]::GetTempFileName()).xml"
+            $using:FileContent | Out-File -FilePath $TempFilePath
+            $TempFilePath
+        }
+        $TempFilePath
+    }
+}
