@@ -303,3 +303,18 @@ function Invoke-GPOStringSearch {
         $i++
     }
 }
+
+function Invoke-OutputFileToRemoteTempPath {
+    param(
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$FileContent
+    )
+    process{
+        $TempFilePath = Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+            $TempFilePath = "$([io.path]::GetTempFileName()).xml"
+            $using:FileContent | Out-File -FilePath $TempFilePath
+            $TempFilePath
+        }
+        $TempFilePath
+    }
+}
