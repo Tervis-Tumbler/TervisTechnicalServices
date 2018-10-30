@@ -288,3 +288,18 @@ Tervis IT
         Send-MailMessage -To $EmailAddress -From "technicalservices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -SmtpServer cudaspam.tervis.com -Attachments "$PSScriptRoot\1 - Import the Tervis Root CA.pdf","$PSScriptRoot\2 - Request and install the Vendor certificate through IE 11.pdf","$PSScriptRoot\3 - Set up Cisco AnyConnect to use new profile.pdf"    
     }
 }
+
+function Invoke-GPOStringSearch {
+    param (
+        [string]$SearchString
+    )
+    $GPOs = Get-GPO -All
+    $i = 0
+    $GPOs | ForEach-Object {
+        Write-Progress -Activity "Searching for `"$SearchString`"" -Status $_.DisplayName -PercentComplete ($i * 100 / $GPOs.count)
+        if ($_.GenerateReport([Microsoft.GroupPolicy.ReportType]::xml) -match $SearchString) {
+            $_
+        }
+        $i++
+    }
+}
