@@ -267,9 +267,9 @@ Your Tervis domain account has been created.
 
 To receive your credentials for our environment, please call the helpdesk at 941.441.3168.
  
-Before logging in, you will be required to change your password by going to https://adfs.tervis.com/adfs/portal/updatepassword. This password must include at minimum 6 characters, 1 capital, 1 number, and must not include your name.
-NOTE: In this screen, you must enter your username in the format "tervis\username"
- 
+Before logging in, you will be required to change your password by going to https://adfs.tervis.com/adfs/portal/updatepassword. This page requires usernames in the format "tervis\username"
+Note: We have moved to a longer, more secure password policy. We are now using passphrase based passwords consisting of multiple, random words creating one long, but memorable passphrase of at least 20 characters. 
+
 To install the Cisco VPN agent, navigate to https://ciscovpn.tervis.com. You will need to log in using the Tervis domain credentials (only your username, no domain prefix). 
 To configure two-factor authentication for VPN, please follow the steps in the three attached documents.
 
