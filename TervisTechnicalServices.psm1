@@ -250,6 +250,10 @@ $TervisContractorDefinitions = [PSCustomObject][Ordered] @{
 [PSCustomObject][Ordered] @{
     Name = "Fadel"
     RoleSecurityGroup = "Fadel"
+},
+[PSCustomObject][Ordered] @{
+    Name = "eComchain"
+    RoleSecurityGroup = "eComchain"
 }
 
 function Send-TervisContractorWelcomeLetter {
