@@ -11,31 +11,63 @@ function Install-TervisTechnicalServices {
 function New-TervisPerson {
     param(
         [parameter(ParameterSetName="BusinessUser")][Switch]$Employee,
+        [parameter(ParameterSetName="Contractor")][Switch]$Contractor,
 
         [parameter(Mandatory,ParameterSetName="BusinessUser")]
+        [parameter(Mandatory,ParameterSetName="Contractor")]
         $GivenName,
 
         [parameter(Mandatory,ParameterSetName="BusinessUser")]
+        [parameter(Mandatory,ParameterSetName="Contractor")]
         $SurName,
 
-        [parameter(Mandatory,ParameterSetName="BusinessUser")]$ManagerSAMAccountName,
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]
+        [parameter(Mandatory,ParameterSetName="Contractor")]
+        $ManagerSAMAccountName,
+
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$Department,
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$Title,
-        [parameter(ParameterSetName="BusinessUser")]$Company = "Tervis",
+        
+        [parameter(ParameterSetName="BusinessUser")]
+        [parameter(Mandatory,ParameterSetName="Contractor")]
+        $Company
+
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$SAMAccountNameToBeLike,
         [parameter(ParameterSetName="BusinessUser")][switch]$UserHasTheirOwnDedicatedComputer,
         [parameter(ParameterSetName="BusinessUser")][switch]$UserHasMicrosoftTeamPhone,
-        [switch]$ADUserAccountCreationOnly
+        [parameter(ParameterSetName="BusinessUser")][switch]$ADUserAccountCreationOnly
     )
     process {
         $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
 
-        if ($Employee) {
-            $SecurePW = (New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword) | Select-Object -ExpandProperty Password | ConvertTo-SecureString -AsPlainText -Force
-            New-TervisWindowsUser -GivenName $GivenName -Surname $SurName -SAMAccountName $SAMAccountName -ManagerSAMAccountName $ManagerSAMAccountName -Department $Department -Title $Title -Company $Company -AccountPassword $SecurePW -SAMAccountNameToBeLike $SAMAccountNameToBeLike -UserHasTheirOwnDedicatedComputer:$UserHasTheirOwnDedicatedComputer -ADUserAccountCreationOnly:$ADUserAccountCreationOnly
+        if ($Employee -or $Contractor) {
+            $SecurePW = (New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword) | 
+            Select-Object -ExpandProperty Password | 
+            ConvertTo-SecureString -AsPlainText -Force
+
+            $TervisWindowsUserParameters = $PSBoundParameters | 
+            ConvertFrom-PSBoundParameters -Property GivenName, Surname, ManagerSAMAccountName, Department, Title, Company, SAMAccountNameToBeLike, UserHasTheirOwnDedicatedComputer, ADUserAccountCreationOnly
+
+            New-TervisWindowsUser @TervisWindowsUserParameters -SAMAccountName $SAMAccountName -AccountPassword $SecurePW 
             if ($UserHasMicrosoftTeamPhone) {
                 New-TervisMicrosoftTeamPhone -UserID $SAMAccountName -LocationID "d99a1eb3-f053-448a-86ec-e0d515dc0dea"
             }
+        }
+
+        if ($Contractor) {
+            if ((Get-ADGroup -Filter {SamAccountName -eq $Company}) -eq $null ){
+                New-ADGroup -Name $Company -GroupScope Universal -GroupCategory Security
+            }
+            $CompanySecurityGroup = Get-ADGroup -Identity $Company
+
+            Add-ADGroupMember $CompanySecurityGroup -Members $SAMAccountName
+            Add-ADGroupMember "LongPWPolicy" -Members $UserName
+            Import-TervisExchangePSSession
+            New-ExchangeMailContact -FirstName $GivenName -LastName $SurName -Name $DisplayName -ExternalEmailAddress $ExternalEmailAddress
+            
+            New-PasswordStatePassword -PasswordListId 78 -Title $DisplayName -Username $LogonName -Password $SecurePW
+
+            Send-TervisContractorWelcomeLetter -Name $DisplayName -EmailAddress $ExternalEmailAddress
         }
     }
 }
