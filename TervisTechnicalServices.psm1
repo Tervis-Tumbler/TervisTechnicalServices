@@ -11,14 +11,11 @@ function Install-TervisTechnicalServices {
 function New-TervisPerson {
     param(
         [parameter(ParameterSetName="BusinessUser")][Switch]$Employee,
-        [parameter(ParameterSetName="MESOnly")][Switch]$MESOnly,
 
         [parameter(Mandatory,ParameterSetName="BusinessUser")]
-        [parameter(Mandatory,ParameterSetName="MESOnly",ValueFromPipelineByPropertyName)]
         $GivenName,
 
         [parameter(Mandatory,ParameterSetName="BusinessUser")]
-        [parameter(Mandatory,ParameterSetName="MESOnly",ValueFromPipelineByPropertyName)]
         $SurName,
 
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$ManagerSAMAccountName,
@@ -30,9 +27,6 @@ function New-TervisPerson {
         [parameter(ParameterSetName="BusinessUser")][switch]$UserHasMicrosoftTeamPhone,
         [switch]$ADUserAccountCreationOnly
     )
-    begin {
-        $MESUsers = @()
-    }
     process {
         $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
 
@@ -43,21 +37,6 @@ function New-TervisPerson {
                 New-TervisMicrosoftTeamPhone -UserID $SAMAccountName -LocationID "d99a1eb3-f053-448a-86ec-e0d515dc0dea"
             }
         }
-
-        if ($MESOnly) {
-            $MESUsers += [PSCustomObject]@{
-                GivenName = $GivenName
-                SurName = $SurName
-                SAMAccountName = $SAMAccountName
-            }
-            New-TervisProductionUser -GivenName $GivenName -SurName $SurName -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
-        }
-    }
-    end {
-        $MESUsers | Add-Member -MemberType ScriptProperty -Name ADUser -Value {
-            Get-ADUser -Identity  $This.SAMAccountName
-        }
-        $MESUsers
     }
 }
 
@@ -138,23 +117,6 @@ Tervis IT
     Send-TervisMailMessage -To $To -Bcc $Bcc -From $From -Subject $Subject -Body $Body
 }
 
-function Remove-TervisProductionUser {
-    param(
-        [Parameter(Mandatory)]$Identity
-    )
-    $ADuser = Get-TervisADUser -Identity $Identity -IncludeMailboxProperties
-
-    if($ADuser.O365Mailbox) {
-        Write-Output "The user account $Identity has an Office 365 mailbox.  Please run the function 'Remove-TervisUser' for this user."
-
-    } elseif ($ADuser.ExchangeMailbox) {
-        Write-Output "The user account $Identity has an On Premises Exchange 2016 mailbox.  Please contact their manager to see if they need access to the user's email."
-    } else {
-        Write-Output "User has no mailbox, removing user account."
-        Remove-ADUser -Identity $Identity -Confirm
-    }
-}
-
 function Send-EBSResponsibilityApprovalRequestEmail {
     param(
         [parameter(mandatory)]$EBSUsernameOfEmployeeNeedingEBSResponsibility,
@@ -216,14 +178,6 @@ function Get-EBSResponsibilityApprovalMatrix {
     )
     $Matrix = Import-Csv -Path $PathToMatrix
     $MatrixGridResponsibilities = $Matrix | Out-GridView -PassThru
-}
-
-function New-TervisProductionUsers {
-    param(
-        $PathToCSV = "\\$(Get-DomainName -ComputerName $env:COMPUTERNAME)\applications\PowerShell\New-TervisProductionUsers\TervisProductionUsers.csv"
-    )
-    $TervisProductionUsers = Import-Csv -Path $PathToCSV
-    $TervisProductionUsers | New-TervisPerson -MESOnly
 }
 
 function Get-TervisContractorDefinition {
