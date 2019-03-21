@@ -204,6 +204,10 @@ $TervisContractorDefinitions = [PSCustomObject][Ordered] @{
 [PSCustomObject][Ordered] @{
     Name = "Fadel"
     RoleSecurityGroup = "Fadel"
+},
+[PSCustomObject][Ordered] @{
+    Name = "eComchain"
+    RoleSecurityGroup = "eComchain"
 }
 
 function Send-TervisContractorWelcomeLetter {
@@ -237,9 +241,9 @@ Tervis IT
 "@
 
     if ($CcEmailAddress){
-        Send-MailMessage -To $EmailAddress -Cc $CcEmailAddress -From "technicalservices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -SmtpServer cudaspam.tervis.com -Attachments "$PSScriptRoot\1 - Import the Tervis Root CA.pdf","$PSScriptRoot\2 - Request and install the Vendor certificate through IE 11.pdf","$PSScriptRoot\3 - Set up Cisco AnyConnect to use new profile.pdf"
+        Send-TervisMailMessage -To $EmailAddress -Cc $CcEmailAddress -From "TechnicalServices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -Attachments "$PSScriptRoot\1 - Import the Tervis Root CA.pdf","$PSScriptRoot\2 - Request and install the Vendor certificate through IE 11.pdf","$PSScriptRoot\3 - Set up Cisco AnyConnect to use new profile.pdf"
     } else {
-        Send-MailMessage -To $EmailAddress -From "technicalservices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -SmtpServer cudaspam.tervis.com -Attachments "$PSScriptRoot\1 - Import the Tervis Root CA.pdf","$PSScriptRoot\2 - Request and install the Vendor certificate through IE 11.pdf","$PSScriptRoot\3 - Set up Cisco AnyConnect to use new profile.pdf"    
+        Send-TervisMailMessage -To $EmailAddress -From "TechnicalServices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -Attachments "$PSScriptRoot\1 - Import the Tervis Root CA.pdf","$PSScriptRoot\2 - Request and install the Vendor certificate through IE 11.pdf","$PSScriptRoot\3 - Set up Cisco AnyConnect to use new profile.pdf"    
     }
 }
 
