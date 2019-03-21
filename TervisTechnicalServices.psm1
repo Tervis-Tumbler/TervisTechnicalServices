@@ -26,11 +26,17 @@ function New-TervisPerson {
         $ManagerSAMAccountName,
 
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$Department,
-        [parameter(Mandatory,ParameterSetName="BusinessUser")]$Title,
+        
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]
+        [parameter(Mandatory,ParameterSetName="Contractor")]
+        $Title,
         
         [parameter(ParameterSetName="BusinessUser")]
         [parameter(Mandatory,ParameterSetName="Contractor")]
-        $Company
+        $Company,
+
+        [parameter(Mandatory,ParameterSetName="Contractor")]
+        $ExternalEmailAddress,
 
         [parameter(Mandatory,ParameterSetName="BusinessUser")]$SAMAccountNameToBeLike,
         [parameter(ParameterSetName="BusinessUser")][switch]$UserHasTheirOwnDedicatedComputer,
@@ -65,7 +71,7 @@ function New-TervisPerson {
             Import-TervisExchangePSSession
             New-ExchangeMailContact -FirstName $GivenName -LastName $SurName -Name $DisplayName -ExternalEmailAddress $ExternalEmailAddress
             
-            New-PasswordStatePassword -PasswordListId 78 -Title $DisplayName -Username $LogonName -Password $SecurePW
+            New-PasswordStatePassword -PasswordListId 78 -Title $DisplayName -Username $SAMAccountName -Password $SecurePW
 
             Send-TervisContractorWelcomeLetter -Name $DisplayName -EmailAddress $ExternalEmailAddress
         }
