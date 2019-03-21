@@ -231,10 +231,11 @@ Note: We have moved to a longer, more secure password policy. We are now using p
 To install the Cisco VPN agent, navigate to https://ciscovpn.tervis.com. You will need to log in using the Tervis domain credentials (only your username, no domain prefix). 
 To configure two-factor authentication for VPN, please follow the steps in the three attached documents.
 
-Remote Desktop and RemoteApps can be accessed by browsing to https://rdweb.tervis.com/rdweb via Internet Explorer. You will also be able to access our Sharepoint server with a VPN connection via the URL https://sharepoint.tervis.com.
+Remote Desktop and RemoteApps can be accessed by browsing to https://rdweb.tervis.com/rdweb via Internet Explorer.
+
 You will need to log in using your Tervis username in the format of "Tervis\Username".
 
-If you require any assistance interfacing with our infrastructure please feel free to call the helpdesk at 941.441.3168 or email tthelpdesk@tervis.com
+If you require any assistance interfacing with our infrastructure please feel free to call the helpdesk at 941.441.3168.
 
 Thanks,
 Tervis IT
