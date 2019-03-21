@@ -51,10 +51,10 @@ function New-TervisPerson {
             Select-Object -ExpandProperty Password | 
             ConvertTo-SecureString -AsPlainText -Force
 
-            $TervisWindowsUserParameters = $PSBoundParameters | 
-            ConvertFrom-PSBoundParameters -Property GivenName, Surname, ManagerSAMAccountName, Department, Title, Company, SAMAccountNameToBeLike, UserHasTheirOwnDedicatedComputer, ADUserAccountCreationOnly -AsHashTable
+            $TervisWindowsUserParameters = $PSBoundParameters |
+            ConvertFrom-PSBoundParameters -Property GivenName, Surname, ManagerSAMAccountName, Department, Title, Company, SAMAccountNameToBeLike, UserHasTheirOwnDedicatedComputer, ADUserAccountCreationOnly, Contractor -AsHashTable
 
-            New-TervisWindowsUser @TervisWindowsUserParameters -SAMAccountName $SAMAccountName -AccountPassword $SecurePW 
+            New-TervisWindowsUser @TervisWindowsUserParameters -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
             if ($UserHasMicrosoftTeamPhone) {
                 New-TervisMicrosoftTeamPhone -UserID $SAMAccountName -LocationID "d99a1eb3-f053-448a-86ec-e0d515dc0dea"
             }
@@ -246,6 +246,10 @@ $TervisContractorDefinitions = [PSCustomObject][Ordered] @{
 [PSCustomObject][Ordered] @{
     Name = "eComchain"
     RoleSecurityGroup = "eComchain"
+},
+[PSCustomObject][Ordered] @{
+    Name = "QC Software"
+    RoleSecurityGroup = "QC Software"
 }
 
 function Send-TervisContractorWelcomeLetter {
