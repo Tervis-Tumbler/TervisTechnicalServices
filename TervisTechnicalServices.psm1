@@ -46,7 +46,7 @@ function New-TervisPerson {
             ConvertTo-SecureString -AsPlainText -Force
 
             $TervisWindowsUserParameters = $PSBoundParameters | 
-            ConvertFrom-PSBoundParameters -Property GivenName, Surname, ManagerSAMAccountName, Department, Title, Company, SAMAccountNameToBeLike, UserHasTheirOwnDedicatedComputer, ADUserAccountCreationOnly
+            ConvertFrom-PSBoundParameters -Property GivenName, Surname, ManagerSAMAccountName, Department, Title, Company, SAMAccountNameToBeLike, UserHasTheirOwnDedicatedComputer, ADUserAccountCreationOnly -AsHashTable
 
             New-TervisWindowsUser @TervisWindowsUserParameters -SAMAccountName $SAMAccountName -AccountPassword $SecurePW 
             if ($UserHasMicrosoftTeamPhone) {
