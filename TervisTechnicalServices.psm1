@@ -9,26 +9,17 @@ function Install-TervisTechnicalServices {
 }
 
 function New-TervisPerson {
+    [cmdletbinding(DefaultParameterSetName="BusinessUser")]
     param(
-        [parameter(ParameterSetName="BusinessUser")][Switch]$Employee,
-        [parameter(ParameterSetName="Contractor")][Switch]$Contractor,
+        [ValidateSet("Employee","Contractor")]
+        [Parameter(Mandatory)]
+        $Type,
 
-        [parameter(Mandatory,ParameterSetName="BusinessUser")]
-        [parameter(Mandatory,ParameterSetName="Contractor")]
-        $GivenName,
+        [parameter(Mandatory)]$GivenName,
+        [parameter(Mandatory)]$SurName,
+        [parameter(Mandatory)]$ManagerSAMAccountName,
 
-        [parameter(Mandatory,ParameterSetName="BusinessUser")]
-        [parameter(Mandatory,ParameterSetName="Contractor")]
-        $SurName,
-
-        [parameter(Mandatory,ParameterSetName="BusinessUser")]
-        [parameter(Mandatory,ParameterSetName="Contractor")]
-        $ManagerSAMAccountName,
-
-        [parameter(Mandatory,ParameterSetName="BusinessUser")]$Department,
-        
-        [parameter(Mandatory,ParameterSetName="BusinessUser")]
-        [parameter(Mandatory,ParameterSetName="Contractor")]
+        [parameter(ParameterSetName="BusinessUser")]$Department,        
         $Title,
         
         [parameter(ParameterSetName="BusinessUser")]
@@ -46,22 +37,20 @@ function New-TervisPerson {
     process {
         $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
 
-        if ($Employee -or $Contractor) {
-            $SecurePW = (New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword) | 
-            Select-Object -ExpandProperty Password | 
-            ConvertTo-SecureString -AsPlainText -Force
+        $SecurePW = (New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword) | 
+        Select-Object -ExpandProperty Password | 
+        ConvertTo-SecureString -AsPlainText -Force
 
-            $TervisWindowsUserParameters = $PSBoundParameters |
-            ConvertFrom-PSBoundParameters -Property GivenName, Surname, ManagerSAMAccountName, Department, Title, Company, SAMAccountNameToBeLike, UserHasTheirOwnDedicatedComputer, ADUserAccountCreationOnly -AsHashTable
+        $TervisWindowsUserParameters = $PSBoundParameters |
+        ConvertFrom-PSBoundParameters -Property GivenName, Surname, ManagerSAMAccountName, Department, Title, Company, SAMAccountNameToBeLike, UserHasTheirOwnDedicatedComputer, ADUserAccountCreationOnly, Type -AsHashTable
 
-            New-TervisWindowsUser @TervisWindowsUserParameters -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
-            if ($UserHasMicrosoftTeamPhone) {
-                New-TervisMicrosoftTeamPhone -UserID $SAMAccountName -LocationID "d99a1eb3-f053-448a-86ec-e0d515dc0dea"
-            }
+        New-TervisWindowsUser @TervisWindowsUserParameters -SAMAccountName $SAMAccountName -AccountPassword $SecurePW
+        if ($UserHasMicrosoftTeamPhone) {
+            New-TervisMicrosoftTeamPhone -UserID $SAMAccountName -LocationID "d99a1eb3-f053-448a-86ec-e0d515dc0dea"
         }
 
-        if ($Contractor) {
-            if ((Get-ADGroup -Filter {SamAccountName -eq $Company}) -eq $null ){
+        if ($Type -eq "Contractor") {
+            if ($null -eq (Get-ADGroup -Filter {SamAccountName -eq $Company})) {
                 New-ADGroup -Name $Company -GroupScope Universal -GroupCategory Security
             }
             $CompanySecurityGroup = Get-ADGroup -Identity $Company
