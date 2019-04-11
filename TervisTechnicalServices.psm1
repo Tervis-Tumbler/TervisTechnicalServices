@@ -36,8 +36,8 @@ function New-TervisPerson {
     )
     process {
         $SAMAccountName = Get-AvailableSAMAccountName -GivenName $GivenName -Surname $SurName
-
-        $SecurePW = (New-PasswordstatePassword -PasswordListId 78 -Title "$GivenName $SurName" -Username $SAMAccountName -GeneratePassword) | 
+        $FullName = "$GivenName $SurName"
+        $SecurePW = (New-PasswordstatePassword -PasswordListId 78 -Title $FullName -Username $SAMAccountName -GeneratePassword) | 
         Select-Object -ExpandProperty Password | 
         ConvertTo-SecureString -AsPlainText -Force
 
@@ -58,9 +58,9 @@ function New-TervisPerson {
             Add-ADGroupMember $CompanySecurityGroup -Members $SAMAccountName
             Add-ADGroupMember "LongPWPolicy" -Members $SAMAccountName
             Import-TervisExchangePSSession
-            New-ExchangeMailContact -FirstName $GivenName -LastName $SurName -Name "$SurName $GivenName" -ExternalEmailAddress $ExternalEmailAddress
+            New-ExchangeMailContact -FirstName $GivenName -LastName $SurName -Name $FullName -ExternalEmailAddress $ExternalEmailAddress
 
-            Send-TervisContractorWelcomeLetter -Name "$SurName $GivenName" -EmailAddress $ExternalEmailAddress
+            Send-TervisContractorWelcomeLetter -Name $FullName -EmailAddress $ExternalEmailAddress
         }
     }
 }
