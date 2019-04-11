@@ -56,13 +56,11 @@ function New-TervisPerson {
             $CompanySecurityGroup = Get-ADGroup -Identity $Company
 
             Add-ADGroupMember $CompanySecurityGroup -Members $SAMAccountName
-            Add-ADGroupMember "LongPWPolicy" -Members $UserName
+            Add-ADGroupMember "LongPWPolicy" -Members $SAMAccountName
             Import-TervisExchangePSSession
-            New-ExchangeMailContact -FirstName $GivenName -LastName $SurName -Name $DisplayName -ExternalEmailAddress $ExternalEmailAddress
-            
-            New-PasswordStatePassword -PasswordListId 78 -Title $DisplayName -Username $SAMAccountName -Password $SecurePW
+            New-ExchangeMailContact -FirstName $GivenName -LastName $SurName -Name "$SurName $GivenName" -ExternalEmailAddress $ExternalEmailAddress
 
-            Send-TervisContractorWelcomeLetter -Name $DisplayName -EmailAddress $ExternalEmailAddress
+            Send-TervisContractorWelcomeLetter -Name "$SurName $GivenName" -EmailAddress $ExternalEmailAddress
         }
     }
 }
