@@ -239,6 +239,10 @@ $TervisContractorDefinitions = [PSCustomObject][Ordered] @{
 [PSCustomObject][Ordered] @{
     Name = "QC Software"
     RoleSecurityGroup = "QC Software"
+},
+[PSCustomObject][Ordered] @{
+    Name = "HeliosGroup"
+    RoleSecurityGroup = "HeliosGroup"
 }
 
 function Send-TervisContractorWelcomeLetter {
