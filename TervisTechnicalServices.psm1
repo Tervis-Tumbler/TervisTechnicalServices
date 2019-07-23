@@ -54,11 +54,12 @@ function New-TervisPerson {
                 New-ADGroup -Name $Company -GroupScope Universal -GroupCategory Security
             }
             $CompanySecurityGroup = Get-ADGroup -Identity $Company
-
+            
             Add-ADGroupMember $CompanySecurityGroup -Members $SAMAccountName
             Add-ADGroupMember "LongPWPolicy" -Members $SAMAccountName
             Import-TervisExchangePSSession
             New-ExchangeMailContact -FirstName $GivenName -LastName $SurName -Name $FullName -ExternalEmailAddress $ExternalEmailAddress
+            Set-ADEmployeeNumberAttributeToThirtyCharacterGUID -Identity $SAMAccountName
 
             Send-TervisContractorWelcomeLetter -Name $FullName -EmailAddress $ExternalEmailAddress
         }
@@ -314,4 +315,15 @@ function Invoke-OutputFileToRemoteTempPath {
         }
         $TempFilePath
     }
+}
+
+function Set-ADEmployeeNumberAttributeToThirtyCharacterGUID{
+    [CmdletBinding()]
+    param(
+        [parameter(Mandatory)]$SamAccountName
+    )
+    [string]$UserGuid = Get-ADUser -Identity $SamAccountName -Properties ObjectGuid | Select-Object -ExpandProperty ObjectGuid
+    $ContractorID = $UserGuid.Replace("-","").Substring(0,30)
+    Set-ADUser -Identity $SamAccountName -EmployeeNumber $ContractorID
+    Write-Verbose -Message "ContractorID: $ContractorID"
 }
