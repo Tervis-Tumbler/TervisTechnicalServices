@@ -352,3 +352,28 @@ Thanks,
 IT
 "@
 }
+
+function Restart-FedExShipManagerSoftwareServer{
+    
+    Send-TervisMailMessage -To TechnicalServices@tervis.com -Subject "FSMS Server System Rebooting" -From HelpDeskTeam@tervis.com -Body @"
+Team,
+
+The FSMS Server, "INF-FedExSM01", is currently being rebooted.
+
+Thanks,
+
+IT
+"@
+    
+Restart-Computer -ComputerName "INF-FedExSM01" -Wait -Force
+
+    Send-TervisMailMessage -To TechnicalServices@tervis.com -Subject "RE: FSMS Server System Rebooting" -From HelpDeskTeam@tervis.com -Body @"
+Team,
+
+The reboot of FSMS Server, "INF-FedExSM01" has completed.
+
+Thanks,
+
+IT
+"@
+}
