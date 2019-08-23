@@ -327,3 +327,28 @@ function Set-ADEmployeeNumberAttributeToThirtyCharacterGUID{
     Set-ADUser -Identity $SamAccountName -EmployeeNumber $ContractorID
     Write-Verbose -Message "ContractorID: $ContractorID"
 }
+
+function Restart-BartenderLicensingServer{
+    
+    Send-TervisMailMessage -To TechnicalServices@tervis.com -Subject "Bartender Licensing System Rebooting" -From HelpDeskTeam@tervis.com -Body @"
+Team,
+
+The Bartender Licensing server, "Bartender.tervis.prv", is currently being rebooted.
+
+Thanks,
+
+IT
+"@
+    
+Restart-Computer -ComputerName Bartender -Wait -Force
+
+    Send-TervisMailMessage -To TechnicalServices@tervis.com -Subject "RE: Bartender Licensing System Rebooting" -From HelpDeskTeam@tervis.com -Body @"
+Team,
+
+The reboot of Bartender Licensing, "Bartender.tervis.prv", has completed.
+
+Thanks,
+
+IT
+"@
+}
