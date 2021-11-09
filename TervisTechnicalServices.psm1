@@ -59,7 +59,7 @@ function New-TervisPerson {
             Add-ADGroupMember "LongPWPolicy" -Members $SAMAccountName
             Import-TervisExchangePSSession
             New-ExchangeMailContact -FirstName $GivenName -LastName $SurName -Name $FullName -ExternalEmailAddress $ExternalEmailAddress
-            Set-ADEmployeeNumberAttributeToThirtyCharacterGUID -Identity $SAMAccountName
+            Set-ADEmployeeNumberAttributeToThirtyCharacterGUID -SamAccountName $SAMAccountName
 
             Send-TervisContractorWelcomeLetter -Name $FullName -EmailAddress $ExternalEmailAddress
         }
