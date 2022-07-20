@@ -262,8 +262,10 @@ function Send-TervisContractorWelcomeLetter {
         $CcEmailAddress
     )
 
-    $VPNProfile = if ($EmailAddress -like "*trevera*") {"REMOTE-TREVERA"}
+    $VPNProfile = 
+    if ($EmailAddress -like "*trevera*")    {"REMOTE-TREVERA"}
     elseif ($EmailAddress -like "*helios*") {"REMOTE-HELIOS"}
+    elseif ($EmailAddress -like "*numina*") {"REMOTE-NUMINA"}
 
     $VPNInstruction = if ($VPNProfile) {@"
 
