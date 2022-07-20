@@ -256,34 +256,50 @@ function Send-TervisContractorWelcomeLetter {
         $CcEmailAddress
     )
 
+    $VPNProfile = if ($EmailAddress -like "*trevera*") {"REMOTE-TREVERA"}
+    elseif ($EmailAddress -like "*helios*") {"REMOTE-HELIOS"}
+
+    $VPNInstruction = if ($VPNProfile) {@"
+
+If VPN access is required:
+1. Go to https://newciscovpn.tervis.com/Get-VPNCert
+2. Log in using the Tervis domain credentials (only your username, no domain prefix).
+3. Download, install, and launch Cisco AnyConnect agent.
+4. In AnyConnect, connect to "newciscovpn.tervis.com/Get-VPNCert" (without quotes) using the same credentials as above.
+5. Once connected, disconnect.
+6. Connect to "newciscovpn.tervis.com/$VPNProfile" (without quotes).
+    
+"@
+    }
+
     $TervisContractorWelcomeLetterSubject = "Tervis Contractor Account Setup"
     $TervisContractorWelcomeLetter = @"
-    $Name,
+$Name,
  
 Your Tervis domain account has been created.
 
-To receive your credentials for our environment, please call the helpdesk at 941.441.3168.
+To receive your credentials for our environments, please contact your Tervis representative or call the Tervis IT Help Desk at 941.441.3168.
  
-Before logging in, you will be required to change your password by going to https://adfs.tervis.com/adfs/portal/updatepassword. This page requires usernames in the format "tervis\username"
+Before logging in, you will be required to change your password by going to:
+
+https://adfs.tervis.com/adfs/portal/updatepassword. 
+
+This page requires usernames in the format "tervis\username". Please boookmark this page for future password resets.
+
 Note: We have moved to a longer, more secure password policy. We are now using passphrase based passwords consisting of multiple, random words creating one long, but memorable passphrase of at least 20 characters. 
+$VPNInstruction
+Remote Desktop and RemoteApps can be accessed by browsing to https://rdweb.tervis.com/rdweb via Internet Explorer or Microsoft Edge in IE mode. You will need to log in using your Tervis username in the format of "Tervis\Username".
 
-To install the Cisco VPN agent, navigate to https://ciscovpn.tervis.com. You will need to log in using the Tervis domain credentials (only your username, no domain prefix). 
-To configure two-factor authentication for VPN, please follow the steps in the three attached documents.
-
-Remote Desktop and RemoteApps can be accessed by browsing to https://rdweb.tervis.com/rdweb via Internet Explorer.
-
-You will need to log in using your Tervis username in the format of "Tervis\Username".
-
-If you require any assistance interfacing with our infrastructure please feel free to call the helpdesk at 941.441.3168.
+If you require any assistance interfacing with our infrastructure please feel free to call the Tervis IT Help Desk at 941.441.3168.
 
 Thanks,
 Tervis IT
 "@
 
     if ($CcEmailAddress){
-        Send-TervisMailMessage -To $EmailAddress -Cc $CcEmailAddress -From "TechnicalServices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -Attachments "$PSScriptRoot\1 - Import the Tervis Root CA.pdf","$PSScriptRoot\2 - Request and install the Vendor certificate through IE 11.pdf","$PSScriptRoot\3 - Set up Cisco AnyConnect to use new profile.pdf"
+        Send-TervisMailMessage -To $EmailAddress -Cc $CcEmailAddress -From "TechnicalServices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter
     } else {
-        Send-TervisMailMessage -To $EmailAddress -From "TechnicalServices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter -Attachments "$PSScriptRoot\1 - Import the Tervis Root CA.pdf","$PSScriptRoot\2 - Request and install the Vendor certificate through IE 11.pdf","$PSScriptRoot\3 - Set up Cisco AnyConnect to use new profile.pdf"    
+        Send-TervisMailMessage -To $EmailAddress -From "TechnicalServices@tervis.com" -Subject $TervisContractorWelcomeLetterSubject -Body $TervisContractorWelcomeLetter
     }
 }
 
