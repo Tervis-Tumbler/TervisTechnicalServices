@@ -29,7 +29,9 @@ function New-TervisPerson {
         [parameter(Mandatory,ParameterSetName="Contractor")]
         $ExternalEmailAddress,
 
-        [parameter(Mandatory,ParameterSetName="BusinessUser")]$SAMAccountNameToBeLike,
+        [parameter(Mandatory,ParameterSetName="BusinessUser")]
+        [parameter(ParameterSetName="Contractor")]
+        $SAMAccountNameToBeLike,
         [parameter(ParameterSetName="BusinessUser")][switch]$UserHasTheirOwnDedicatedComputer,
         [parameter(ParameterSetName="BusinessUser")][switch]$UserHasMicrosoftTeamPhone,
         [parameter(ParameterSetName="BusinessUser")][switch]$ADUserAccountCreationOnly
@@ -246,6 +248,10 @@ $TervisContractorDefinitions = [PSCustomObject][Ordered] @{
 [PSCustomObject][Ordered] @{
     Name = "KerkeringBarberio"
     RoleSecurityGroup = "KerkeringBarberio"
+},
+[PSCustomObject][Ordered] @{
+    Name = "Numina"
+    RoleSecurityGroup = "Numina"
 }
 
 
